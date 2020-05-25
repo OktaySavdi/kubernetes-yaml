@@ -14,7 +14,7 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/opt"
-
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -25,7 +25,7 @@ spec:
   resources:
       requests:
         storage: 500Mi
-
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -52,7 +52,8 @@ spec:
         - name: nginx-persistentvolume
           persistentVolumeClaim:
             claimName: nginx-persistentvolumeclaim
-
+---
+# Dynamic provision
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
