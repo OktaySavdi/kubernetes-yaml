@@ -1,4 +1,4 @@
-# Kubernetes network-policy example
+# Kubernetes network policy example
 
 ```yaml
 apiVersion: networking.k8s.io/v1
