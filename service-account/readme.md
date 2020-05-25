@@ -11,7 +11,6 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
  name: list-pods
- namespace: default
 rules:
  — apiGroups:
    — ''
@@ -25,7 +24,6 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
  name: list-pods_demo-sa
- namespace: default
 roleRef:
  kind: Role
  name: list-pods
