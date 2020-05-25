@@ -47,7 +47,7 @@ kubectl get pv --sort-by=.spec.capacity.storage -o=custom-columns=NAME:.metadata
 kubectl config view --kubeconfig=my-kube-config -o jsonpath="{.contexts[?(@.context.user=='aws-user')].name}"
 ```
 
-# taint - toleration
+# Taint - Toleration
 ```ruby
 kubectl taint nodes node-name key=value:taint-effect
 kubectl taint nodes node-name app=blue:NoSchedule
@@ -201,7 +201,7 @@ kubectl get roles weave-net -n kube-system -o yaml
 kubectl describe rolebindings weave-net -n kube-system
 ```
 
-# security Context
+# Security Context
 
 ```yaml
 spec:
