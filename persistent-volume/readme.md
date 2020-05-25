@@ -21,7 +21,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: mysqlvol
 spec:
-  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
