@@ -1,3 +1,6 @@
+# Kubernetes Configmap Example
+
+```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -38,3 +41,4 @@ spec:
       envFrom:
         - configMapRef:
             name: app-config
+```
