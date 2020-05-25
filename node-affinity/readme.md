@@ -1,4 +1,4 @@
-# kubernetes node affinity
+# kubernetes node affinity example
 
 ```yaml
 apiVersion: v1
