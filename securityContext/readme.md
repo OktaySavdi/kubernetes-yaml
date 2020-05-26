@@ -29,8 +29,6 @@ spec:
   containers:
     - name: ubuntu
       image: ubuntu
-      command: ["/bin/sh"]
-      args: ["-c", "while true; do echo hello; sleep 10;done"]
       securityContext:
         runAsUser: 1002
         capabilities:
