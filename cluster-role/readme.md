@@ -17,19 +17,19 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: mypv-list-role
-  namespace: default
 rules:
 - apiGroups: [""]
   resources:
   - persistentvolumes
-  verbs: ["list"]
+  - nodes
+  - namespaces
+  verbs: ["list", "watch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   name: mypv-list-role-binding
-  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
