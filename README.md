@@ -28,7 +28,9 @@ kubectl create secret docker-registry private-reg-cred \
                --docker-server=myprivateregistry.com:5000 \
                --docker-email=dock_user@myprivateregistry.com
 ```
-
+```ruby
+kubectl set image deployment/my-deployment mycontainer=myimage:1.9.1
+```
 # json path
 
 ```ruby
