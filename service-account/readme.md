@@ -41,7 +41,7 @@ metadata:
 spec:
  serviceAccountName: demo-sa
  containers:
- — name: alpine
+ - name: alpine
    image: alpine:3.9
    command:
    — "sleep"
