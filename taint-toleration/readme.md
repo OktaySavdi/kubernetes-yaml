@@ -1,7 +1,7 @@
 # Kubernetes taint-toleration example
 
 ```ruby
-kubectl taint nodes labk8sworker key=green:NoSchedule
+kubectl taint nodes labk8sworker nginx=green:NoSchedule
 ```
 
 ```yaml
