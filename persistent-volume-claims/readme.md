@@ -14,6 +14,7 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/opt"
+    
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -25,40 +26,33 @@ spec:
   resources:
       requests:
         storage: 500Mi
+
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: nginx-deployment
+  name: myapp-pod
   labels:
-    app: nginx
+    app: myapp
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
-        volumeMounts:
-        - name: nginx-persistentvolume
-          mountPath: "/usr/share/nginx/html"
-      volumes:
-        - name: nginx-persistentvolume
-          persistentVolumeClaim:
-            claimName: nginx-persistentvolumeclaim
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: nginx-persistentvolume
+      mountPath: "/usr/share/nginx/html"
+  volumes:
+    - name: nginx-persistentvolume
+      persistentVolumeClaim:
+        claimName: nginx-persistentvolumeclaim
+
 ---
 # Dynamic provision
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pvc-deneme
+  name: pvc-example
   labels:
     app: nginx
 spec:
@@ -68,35 +62,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
-      
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-  labels:
-    app: nginx
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.15.4
-        ports:
-        - containerPort: 80
-        volumeMounts:
-          - name:  storage-pvc
-            mountPath:  /opt/deneme
-      volumes:
-        - name:  storage-pvc
-          persistentVolumeClaim:
-            claimName: pvc-deneme
 
 ---
 apiVersion: v1
@@ -113,5 +78,5 @@ spec:
   volumes:
     - name: mypd
       persistentVolumeClaim:
-        claimName: myclaim
+        claimName: pvc-example
 ```
