@@ -48,7 +48,7 @@ metadata:
     type: local
 spec:
   capacity:
-    storage: 10Gi
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -64,7 +64,7 @@ spec:
       - ReadWriteOnce
   resources:
       requests:
-        storage: 500Mi
+        storage: 1Gi
 
 ---
 apiVersion: v1
