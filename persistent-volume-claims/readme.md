@@ -3,6 +3,7 @@
 ```yaml
 ---
 # Dynamic provision
+
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -34,8 +35,10 @@ spec:
     - name: mypd
       persistentVolumeClaim:
         claimName: pvc-example
+
 ---
-#Manuel PV-PVC
+# Manuel PV-PVC
+
 ---
 apiVersion: v1
 kind: PersistentVolume
