@@ -44,7 +44,6 @@ spec:
       subPath: modules
     - name: nginx-pv
       mountPath: /var/www/html/profiles
-      subPath: profiles    
   volumes:
     - name: nginx-pv
       persistentVolumeClaim:
