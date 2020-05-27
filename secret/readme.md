@@ -58,6 +58,6 @@ spec:
         - name: MYSQL_DATABASE
           valueFrom:
             secretKeyRef:
-              name: mysql-mysql-secret
+              name: mysecret
               key: MYSQL_DATABASE  
 ```
