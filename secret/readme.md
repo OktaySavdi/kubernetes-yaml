@@ -43,4 +43,21 @@ spec:
     - name: config-vol
       secret:
         secretName: mysecret
+ 
+#secretKeyRef
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-pod
+spec:
+  containers:
+    - name: test
+      image: busybox
+      env:
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mysql-mysql-secret
+              key: MYSQL_DATABASE  
 ```
