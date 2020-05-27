@@ -1,6 +1,42 @@
 # Kubernetes persistence volume claim example
 
 ```yaml
+---
+# Dynamic provision
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-example
+  labels:
+    app: nginx
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: myfrontend
+      image: nginx
+      volumeMounts:
+        - mountPath: "/var/www/html"
+          name: mypd
+  volumes:
+    - name: mypd
+      persistentVolumeClaim:
+        claimName: pvc-example
+---
+#Manuel PV-PVC
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -38,45 +74,14 @@ spec:
   containers:
   - name: nginx
     image: nginx
-    volumeMounts:
+    volumeMounts:    
+    - name: nginx-persistentvolume
+      mountPath: "/usr/share/nginx/html/modules"
+      subPath: modules
     - name: nginx-persistentvolume
       mountPath: "/usr/share/nginx/html"
   volumes:
     - name: nginx-persistentvolume
       persistentVolumeClaim:
         claimName: nginx-persistentvolumeclaim
-
----
-# Dynamic provision
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: pvc-example
-  labels:
-    app: nginx
-spec:
-  storageClassName: rook-ceph-block
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: mypod
-spec:
-  containers:
-    - name: myfrontend
-      image: nginx
-      volumeMounts:
-        - mountPath: "/var/www/html"
-          name: mypd
-  volumes:
-    - name: mypd
-      persistentVolumeClaim:
-        claimName: pvc-example
 ```
