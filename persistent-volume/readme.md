@@ -26,4 +26,27 @@ spec:
   resources:
     requests:
       storage: 10Gi
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: nginx-pv
+      mountPath: /var/www/html/modules
+      subPath: modules
+    - name: nginx-pv
+      mountPath: /var/www/html/profiles
+      subPath: profiles    
+  volumes:
+    - name: nginx-pv
+      persistentVolumeClaim:
+        claimName: mysqlvol
 ```
