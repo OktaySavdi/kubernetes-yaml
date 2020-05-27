@@ -19,4 +19,25 @@ spec:
   - name: init-mydb
     image: busybox:1.28
     command: ['sh', '-c', 'until nslookup mydb; do echo waiting for mydb; sleep 2; done;']
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: myapp-container
+    image: busybox:1.28
+    command: ['sh', '-c', 'echo The app is running! && sleep 3600']
+  initContainers:
+    - name: init-sites-volume
+      image: busybox:1.28
+      command: ["/bin/bash", "-c"]
+      args: ['sh', '-c', 'until nslookup mydb; do echo waiting for mydb; sleep 2; done;']
+      volumeMounts:
+      - name: my-pv
+        mountPath: "/data"
 ```
