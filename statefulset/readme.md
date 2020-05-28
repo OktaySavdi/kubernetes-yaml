@@ -1,4 +1,4 @@
-# Kubernbetes statefulset example
+# Kubernetes statefulset example
 
 ```yaml
 apiVersion: apps/v1
