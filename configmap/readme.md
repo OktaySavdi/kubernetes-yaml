@@ -47,4 +47,19 @@ spec:
       configMap:
         name: mysql-config-map
 
+#ConfigMap Data
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster-configmap
+data:
+  redis.conf: |-
+    cluster-enabled yes
+    cluster-require-full-coverage no
+    cluster-node-timeout 15000
+    cluster-config-file /data/nodes.conf
+    cluster-migration-barrier 1
+    appendonly yes
+    protected-mode no
 ```
