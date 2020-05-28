@@ -1,6 +1,7 @@
 # Kubernetes role example
 
 ```yaml
+# Service Account
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -30,4 +31,35 @@ rules:
       - get
       - watch
       - list
+# user
+---
+ kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: developer-rolebinding
+  namespace: development
+subjects:
+  - kind: User
+    name: oktay
+    namespace: development
+roleRef:
+  kind: Role 
+  name: developer-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: development
+  name: developer-role
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - persistentvolumeclaims
+      - pods
+      - services
+    verbs:
+      - '*'
 ```
