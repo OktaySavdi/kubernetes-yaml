@@ -8,5 +8,8 @@ metadata:
 spec:
   request: $(cat mycert.csr | base64 | tr -d '\n')
   usages:
+  - digital signature
+  - key encipherment
+  - server auth
   - client auth
 ```
