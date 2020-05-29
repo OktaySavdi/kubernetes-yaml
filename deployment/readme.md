@@ -31,4 +31,10 @@ spec:
             memory: 20Mi
           requests:
             memory: 15Mi
+        volumeMounts:
+        - name: nginx-conf
+          mountPath: '/usr/share/nginx/html/'
+      volumes:
+      - name: nginx-conf
+        emptyDir: {}
 ```
