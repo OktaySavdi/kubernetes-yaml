@@ -42,6 +42,8 @@ kubectl config view -o=jsonpath='{.users[*].name}'
 
 kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'
 
+kubectl get secret elasticsearch-es-elastic-user -o=jsonpath='{.data.elastic}' | base64 --decode
+
 kuconfig view --kubeconfig=my-kube-config -o jsonpath="{.users[*].name}"
 
 kubectl get pv --sort-by=.spec.capacity.storage
