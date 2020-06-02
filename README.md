@@ -28,8 +28,14 @@ kubectl create secret docker-registry private-reg-cred \
                --docker-server=myprivateregistry.com:5000 \
                --docker-email=dock_user@myprivateregistry.com
 ```
+**Rollout-Rollback**
 ```ruby
-kubectl set image deployment/my-deployment mycontainer=myimage:1.9.1
+kubectl rollout status deployment example
+kubectl set image deployment/example MyContainerName=quay.io/oktaysavdi/istioproject:v2
+kubectl rollout history deployment example
+kubectl rollout undo deployment example
+kubectl rollout history deployment example --revision=2
+kubectl rollout undo deployment example  --to-revision=3
 ```
 # json path
 
