@@ -68,4 +68,21 @@ spec:
      protocol: TCP
      port: 5672
      targetPort: 5672
+---
+#Headless
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: istio
+  name: istio
+spec:
+  clusterIP: None
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: istio
 ```
