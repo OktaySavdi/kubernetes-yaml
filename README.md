@@ -40,6 +40,8 @@ kubectl rollout undo deployment example  --to-revision=3
 # Cheat Sheet
 
 ```ruby
+oc get pods --field-selector=status.phase=Running
+
 kubectl get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName,NAMESPACE:.metadata.namespace --all-namespaces
 
 source <(kubectl completion bash) # setup autocomplete in bash into the current shell, bash-completion package should be installed first.
