@@ -42,6 +42,7 @@ spec:
       volumeMounts:
         - name: config-vol
           mountPath: /etc/config
+          subPath: config
   volumes:
     - name: config-vol
       configMap:
