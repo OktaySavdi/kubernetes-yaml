@@ -30,6 +30,7 @@ kubectl create secret docker-registry private-reg-cred \
 ```
 **Rollout-Rollback**
 ```ruby
+kubectl rollout latest dc/example
 kubectl rollout status deployment example
 kubectl set image deployment/example MyContainerName=quay.io/oktaysavdi/istioproject:v2
 kubectl rollout history deployment example
