@@ -103,6 +103,14 @@ kubectl patch deployment valid-deployment  --type json   -p='[{"op": "remove", "
 # Add a new element to a positional array
 kubectl patch sa default --type='json' -p='[{"op": "add", "path": "/secrets/1", "value": {"name": "whatever" } }]'
 
+# expose a port through with a service
+kubectl expose deployment nginx-app --port=80 --name=nginx-http
+
+# login inside pod
+kubectl exec -ti nginx-app-5jyvm -- /bin/sh
+
+
+
 kubectl cluster-info                                                  # Display addresses of the master and services
 kubectl cluster-info dump                                             # Dump current cluster state to stdout
 kubectl cluster-info dump --output-directory=/path/to/cluster-state   # Dump current cluster state to /path/to/cluster-state
