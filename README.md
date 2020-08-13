@@ -74,6 +74,9 @@ kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
 # List PersistentVolumes sorted by capacity
 kubectl get pv --sort-by=.spec.capacity.storage
 
+# add env to nginx-app
+kubectl set env deployment/nginx-app  DOMAIN=cluster
+
 # Get the version label of all pods with label app=cassandra
 kubectl get pods --selector=app=cassandra -o \
   jsonpath='{.items[*].metadata.labels.version}'
