@@ -41,7 +41,7 @@ kubectl rollout undo deployment example  --to-revision=3
 # Cheat Sheet
 
 ```ruby
-Use the --v flag to set a verbosity level.
+# Use the --v flag to set a verbosity level.
 oc get pods --v=8
 
 oc get pods --field-selector=status.phase=Running
