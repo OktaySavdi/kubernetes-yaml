@@ -38,7 +38,7 @@ kubectl rollout undo deployment example
 kubectl rollout history deployment example --revision=2
 kubectl rollout undo deployment example  --to-revision=3
 ```
-**Kubernetes API**
+# Kubernetes API
 ```ruby
 # Use the `oc proxy` command to proxy local requests on port 8001 to the Kubernetes API:
 kubectl proxy --port=8001
