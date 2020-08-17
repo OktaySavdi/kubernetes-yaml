@@ -14,6 +14,12 @@ kubectl run nginx --image nginx --replicas=1 \
 ```ruby
 kubectl create configmap webapp-config-map
 ```
+**Token**
+```ruby
+kubectl create serviceaccount robot
+kubectl policy add-role-to-user admin system:serviceaccount:test:robot
+kubectl serviceaccounts get-token robot
+```
 **Secret**
 ```ruby
 kubectl create secret generic db-secret \
