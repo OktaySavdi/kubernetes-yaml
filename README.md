@@ -154,16 +154,14 @@ kubectl exec -ti nginx-app-5jyvm -- /bin/sh
 
 # Scale pods
 kubectl scale replicaset myfirstreplicaset --replicas=3
-
-
-
+```
+# Cluster
+```ruby
 kubectl cluster-info                                                  # Display addresses of the master and services
 kubectl cluster-info dump                                             # Dump current cluster state to stdout
 kubectl cluster-info dump --output-directory=/path/to/cluster-state   # Dump current cluster state to /path/to/cluster-state
 ```
-
 # jsonpath
-
 ```ruby
 kubectl get nodes node01 -o jsonpath='{.metadata.name}'
 
