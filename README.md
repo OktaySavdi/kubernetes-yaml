@@ -19,6 +19,13 @@ kubectl create configmap webapp-config-map
 kubectl create serviceaccount robot
 kubectl policy add-role-to-user admin system:serviceaccount:test:robot
 kubectl serviceaccounts get-token robot
+
+SERVER=`kubectl whoami --show-server`
+TOKEN=`kubectl whoami --show-token`
+
+URL="$SERVER/oapi/v1/users/~"
+
+curl -H "Authorization: Bearer $TOKEN" $URL --insecure
 ```
 **Secret**
 ```ruby
