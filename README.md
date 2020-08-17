@@ -41,6 +41,9 @@ kubectl rollout undo deployment example  --to-revision=3
 # Cheat Sheet
 
 ```ruby
+Use the --v flag to set a verbosity level.
+oc get pods --v=8
+
 oc get pods --field-selector=status.phase=Running
 
 kubectl get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName,NAMESPACE:.metadata.namespace --all-namespaces
