@@ -109,6 +109,7 @@ kubectl config view
 kubectl config get-contexts                          # display list of contexts 
 kubectl config current-context                       # display the current-context
 kubectl config use-context my-cluster-name           # set the default context to my-cluster-name
+kubectl config set-context --current --namespace=MyNS # permanently save the namespace for all subsequent kubectl commands in that context.
 
 # Get commands with basic output
 kubectl get services                          # List all services in the namespace
