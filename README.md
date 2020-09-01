@@ -2,7 +2,7 @@
 
 # Kubernetes CLI Commands
 
-# CLI Example
+**CLI Example**
 ```ruby
 kubectl run nginx --image nginx --replicas=1 \
                   --port='8080' --requests 'memory=15Mi' \
@@ -170,7 +170,7 @@ kubectl exec -ti nginx-app-5jyvm -- /bin/sh
 # Scale pods
 kubectl scale replicaset myfirstreplicaset --replicas=3
 ```
-# Kubernetes API
+**Kubernetes API**
 ```ruby
 # Use the `oc proxy` command to proxy local requests on port 8001 to the Kubernetes API:
 kubectl proxy --port=8001
@@ -208,13 +208,6 @@ curl -X PUT localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirst
 # You can also get information regarding the pod by using the `GET` method against the `/status` endpoint
 curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/status
 ```
-# Cluster
-```ruby
-kubectl config view
-kubectl cluster-info                                                  # Display addresses of the master and services
-kubectl cluster-info dump                                             # Dump current cluster state to stdout
-kubectl cluster-info dump --output-directory=/path/to/cluster-state   # Dump current cluster state to /path/to/cluster-state
-```
 # jsonpath
 ```ruby
 kubectl get nodes node01 -o jsonpath='{.metadata.name}'
@@ -235,7 +228,13 @@ kubectl get pv --sort-by=.spec.capacity.storage -o=custom-columns=NAME:.metadata
 
 kubectl config view --kubeconfig=my-kube-config -o jsonpath="{.contexts[?(@.context.user=='aws-user')].name}"
 ```
-
+**Cluster**
+```ruby
+kubectl config view
+kubectl cluster-info                                                  # Display addresses of the master and services
+kubectl cluster-info dump                                             # Dump current cluster state to stdout
+kubectl cluster-info dump --output-directory=/path/to/cluster-state   # Dump current cluster state to /path/to/cluster-state
+```
 # Taint - Toleration
 ```ruby
 kubectl taint nodes node-name key=value:taint-effect
