@@ -13,6 +13,53 @@ kubectl run nginx --image nginx --replicas=1 \
 **ConfigMap**
 ```ruby
 kubectl create configmap webapp-config-map
+# file
+kubectl create configmap myconfig --from-file=example-files/game.properties --from-file=example-files/ui.properties
+
+# Value
+kubectl create configmap myconfig --from-literal=special.how=very --from-literal=special.type=charm
+
+# Volume
+kubectl set volume dc/map --add --name=v1 --type=configmap --configmap-name='myconfig' --mount-path=/data
+
+kubectl set volume dc/<DC-NAME> -t configmap --name trusted-ca --add --read-only=true --mount-path /etc/pki/ca-trust/extracted/pem --configmap-name <CONFIGMAP-NAME>
+
+# Env
+kubectl set env --from=configmap/deneme dc/map
+```
+**secret**
+```ruby
+kubectl create secret generic db-secret \
+        --from-literal=DB_HOST=sql01 \
+        --from-literal=DB_User=root \
+        --from-literal=DB_Password=password123 
+```
+```ruby
+kubectl create secret docker-registry private-reg-cred \
+               --docker-username=dock_user \
+               --docker-password=dock_password \
+               --docker-server=myprivateregistry.com:5000 \
+               --docker-email=dock_user@myprivateregistry.com
+```
+```ruby
+# Generic
+kubectl create secret generic test-secret --from-literal=username='my-app' --from-literal=password='39528$vdg7Jb'
+
+# Env
+kubectl set env --from=secret/test-secret dc/map
+
+# Volume
+kubectl set volume rc/r1 --add --name=v1 --type=secret --secret-name='secret1' --mount-path=/data
+```
+**Probe**
+```ruby
+kubectl set probe deployment/hello-node --readiness --get-url=http://:8766/actuator/health --timeout-seconds=1 --initial-delay-seconds=15 --liveness --get-url=http://:8766/actuator/health --timeout-seconds=1 --initial-delay-seconds=15
+```
+**Create and add a Persistent Volume**
+```
+kubectl set volume dc/name-of-your-app-here --add --name=storage --type='persistentVolumeClaim' --claim-class='standard' --claim-name='storage' --claim-size='10Gi' --mount-path=/var/www/html
+
+kubectl set volume -f dc.json --add --name=v1 --type=persistentVolumeClaim --claim-name=pvc1 --mount-path=/data --containers=c1
 ```
 **Token**
 ```ruby
@@ -27,24 +74,10 @@ URL="$SERVER/oapi/v1/users/~"
 
 curl -H "Authorization: Bearer $TOKEN" $URL --insecure
 ```
-**Secret**
-```ruby
-kubectl create secret generic db-secret \
-        --from-literal=DB_HOST=sql01 \
-        --from-literal=DB_User=root \
-        --from-literal=DB_Password=password123 
-```
-```ruby
-kubectl create secret docker-registry private-reg-cred \
-               --docker-username=dock_user \
-               --docker-password=dock_password \
-               --docker-server=myprivateregistry.com:5000 \
-               --docker-email=dock_user@myprivateregistry.com
-```
 **Rollout-Rollback**
 ```ruby
 kubectl rollout latest dc/example
-kubectl rollout status deployment example
+kubectl rollout status deployment example --timeout 90s
 kubectl set image deployment/example MyContainerName=quay.io/oktaysavdi/istioproject:v2
 kubectl rollout history deployment example
 kubectl rollout undo deployment example
