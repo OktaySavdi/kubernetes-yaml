@@ -84,50 +84,18 @@ kubectl rollout undo deployment example
 kubectl rollout history deployment example --revision=2
 kubectl rollout undo deployment example  --to-revision=3
 ```
-# Kubernetes API
-```ruby
-# Use the `oc proxy` command to proxy local requests on port 8001 to the Kubernetes API:
-kubectl proxy --port=8001
-
-# Send a `GET` request to the Kubernetes API using `curl`:
-curl -X GET http://localhost:8001
-
-# Send a `GET` request to list all pods in the environment:
-curl -X GET http://localhost:8001/api/v1/pods
-
-# Use `jq` to parse the json response:
-curl -X GET http://localhost:8001/api/v1/pods | jq .items[].metadata.name
-
-# We can scope the response by only viewing all pods in a particular namespace:
-curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods
-
-# Get more details on a particular pod within the `myproject` namespace:
-curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
-
-# Patch the current pod with a newer container image (`1.15`):
-curl -X PATCH http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod -H "Content-type: application/strategic-merge-patch+json" -d '{"spec":{"containers":[{"name": "server","image":"nginx:1.15-alpine"}]}}'
-
-# Delete the current pod by sending the `DELETE` request method:
-curl -X DELETE http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
-
-# Verify the pod no longer exists:
-curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
-
-# The `oc scale` command interacts with the `/scale` endpoint:
-curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/scale
-
-# Use the `PUT` method against the `/scale` endpoint to change the number of replicas to 5
-curl -X PUT localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/scale -H "Content-type: application/json" -d '{"kind":"Scale","apiVersion":"autoscaling/v1","metadata":{"name":"myfirstreplicaset","namespace":"myproject"},"spec":{"replicas":5}}'
-
-# You can also get information regarding the pod by using the `GET` method against the `/status` endpoint
-curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/status
-```
 # Cheat Sheet
 ```ruby
 # Use the --v flag to set a verbosity level.
-oc get pods --v=8
+kubectl get pods --v=8
 
-oc get pods --field-selector=status.phase=Running
+# Delete Evicted pods
+kubectl get pod  | grep Evicted | awk '{print $1}' | xargs oc delete pod
+
+# Delete Failed pods
+kubectl delete $(oc get pods --field-selector=status.phase=Failed -o name -n cluster-management) -n cluster-management
+
+kubectl get pods --field-selector=status.phase=Running
 
 kubectl get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName,NAMESPACE:.metadata.namespace --all-namespaces
 
@@ -201,6 +169,44 @@ kubectl exec -ti nginx-app-5jyvm -- /bin/sh
 
 # Scale pods
 kubectl scale replicaset myfirstreplicaset --replicas=3
+```
+# Kubernetes API
+```ruby
+# Use the `oc proxy` command to proxy local requests on port 8001 to the Kubernetes API:
+kubectl proxy --port=8001
+
+# Send a `GET` request to the Kubernetes API using `curl`:
+curl -X GET http://localhost:8001
+
+# Send a `GET` request to list all pods in the environment:
+curl -X GET http://localhost:8001/api/v1/pods
+
+# Use `jq` to parse the json response:
+curl -X GET http://localhost:8001/api/v1/pods | jq .items[].metadata.name
+
+# We can scope the response by only viewing all pods in a particular namespace:
+curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods
+
+# Get more details on a particular pod within the `myproject` namespace:
+curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
+
+# Patch the current pod with a newer container image (`1.15`):
+curl -X PATCH http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod -H "Content-type: application/strategic-merge-patch+json" -d '{"spec":{"containers":[{"name": "server","image":"nginx:1.15-alpine"}]}}'
+
+# Delete the current pod by sending the `DELETE` request method:
+curl -X DELETE http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
+
+# Verify the pod no longer exists:
+curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
+
+# The `oc scale` command interacts with the `/scale` endpoint:
+curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/scale
+
+# Use the `PUT` method against the `/scale` endpoint to change the number of replicas to 5
+curl -X PUT localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/scale -H "Content-type: application/json" -d '{"kind":"Scale","apiVersion":"autoscaling/v1","metadata":{"name":"myfirstreplicaset","namespace":"myproject"},"spec":{"replicas":5}}'
+
+# You can also get information regarding the pod by using the `GET` method against the `/status` endpoint
+curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/status
 ```
 # Cluster
 ```ruby
