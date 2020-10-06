@@ -22,7 +22,7 @@ kubectl create configmap myconfig --from-literal=special.how=very --from-literal
 
 # Volume
 kubectl set volume dc/map --add --name=v1 --type=configmap --configmap-name='myconfig' --mount-path=/data
-oc set volumes dc/myapp --add --overwrite=true --name=configmap-volume --mount-path=/data -t configmap --configmap-name=propsfilecm
+kubectl set volumes dc/myapp --add --overwrite=true --name=configmap-volume --mount-path=/data -t configmap --configmap-name=propsfilecm
 
 kubectl set volume dc/<DC-NAME> -t configmap --name trusted-ca --add --read-only=true --mount-path /etc/pki/ca-trust/extracted/pem --configmap-name <CONFIGMAP-NAME>
 
