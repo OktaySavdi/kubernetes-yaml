@@ -14,6 +14,7 @@ kubectl run nginx --image nginx --replicas=1 \
 ```ruby
 kubectl create configmap webapp-config-map
 # file
+kubectl create configmap propsfilecm --from-file=application.properties
 kubectl create configmap myconfig --from-file=example-files/game.properties --from-file=example-files/ui.properties
 
 # Value
@@ -21,6 +22,7 @@ kubectl create configmap myconfig --from-literal=special.how=very --from-literal
 
 # Volume
 kubectl set volume dc/map --add --name=v1 --type=configmap --configmap-name='myconfig' --mount-path=/data
+oc set volumes dc/myapp --add --overwrite=true --name=configmap-volume --mount-path=/data -t configmap --configmap-name=propsfilecm
 
 kubectl set volume dc/<DC-NAME> -t configmap --name trusted-ca --add --read-only=true --mount-path /etc/pki/ca-trust/extracted/pem --configmap-name <CONFIGMAP-NAME>
 
@@ -43,6 +45,7 @@ kubectl create secret docker-registry private-reg-cred \
 ```
 ```ruby
 # Generic
+kubectl create secret generic oia-secret --from-literal=username=myuser --from-literal=password=mypassword
 kubectl create secret generic test-secret --from-literal=username='my-app' --from-literal=password='39528$vdg7Jb'
 
 # Env
@@ -50,6 +53,7 @@ kubectl set env --from=secret/test-secret dc/map
 
 # Volume
 kubectl set volume rc/r1 --add --name=v1 --type=secret --secret-name='secret1' --mount-path=/data
+kubectl set volumes dc/myapp --add --name=secret-volume --mount-path=/opt/app-root/ --secret-name=oia-secret
 ```
 **Probe**
 ```ruby
