@@ -173,6 +173,15 @@ kubectl exec -ti nginx-app-5jyvm -- /bin/sh
 
 # Scale pods
 kubectl scale replicaset myfirstreplicaset --replicas=3
+
+# You do not have to wait until the entire log of the pod’s container is printed out — just use --tail
+kubectl -n my-namespace logs -f my-pod --tail=50
+
+# Here is how you can print all the logs from all containers of a pod
+kubectl -n my-namespace logs -f my-pod --all-containers
+
+# Getting logs of the “previous” container
+kubectl -n my-namespace logs my-pod --previous
 ```
 **Kubernetes API**
 ```ruby
@@ -231,6 +240,15 @@ kubectl get pv --sort-by=.spec.capacity.storage
 kubectl get pv --sort-by=.spec.capacity.storage -o=custom-columns=NAME:.metadata.name,CAPACITY:.spec.capacity.storage 
 
 kubectl config view --kubeconfig=my-kube-config -o jsonpath="{.contexts[?(@.context.user=='aws-user')].name}"
+
+# You can get internal IP addresses of cluster nodes
+kubectl get nodes -o json | jq -r '.items[].status.addresses[]? | select (.type == "InternalIP") | .address' |   paste -sd "\n" -
+ 
+# You can print all services and their respective nodePorts:
+kubectl get --all-namespaces svc -o json | jq -r '.items[] | [.metadata.name,([.spec.ports[].nodePort | tostring ] | join("|"))]| @tsv'
+
+# Pod subnets that are used in the cluster
+kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}' | tr " " "\n
 ```
 **Cluster**
 ```ruby
