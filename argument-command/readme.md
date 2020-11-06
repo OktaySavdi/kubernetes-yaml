@@ -26,7 +26,6 @@ spec:
       image: ubuntu
       command: ["/bin/sh"]
       args: ["-c", "while true; do echo hello; sleep 10;done"]
-```
 
 ---
 apiVersion: v1
