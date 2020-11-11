@@ -36,8 +36,22 @@ metadata:
     mylabels: web-pod
 spec:
   containers:
-    - name: ubuntu
-      image: ubuntu
+    - name: nginx
+      image: nginx
       command: ["/bin/sh"]
       args: ["-c", "while [ ! -f /opt/myfile ]; do sleep 10; done; ls -l /opt/myfile && /usr/local/s2i/run"]
+      
+ ---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+  labels:
+    mylabels: web-pod
+spec:
+  containers:
+    - name: istio
+      image: istio     
+      command: ["/bin/bash", "-c"]
+      args: ["until curl --head localhost:15000 ; do echo Waiting for Sidecar; sleep 3 ; done ; echo Sidecar available; ./startup.sh"]
 ```
