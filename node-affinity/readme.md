@@ -76,4 +76,34 @@ spec:
                    operator: In
                    values:
                      - blue
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node-affinity-demo
+  labels:
+    env: staging
+spec:
+  containers:
+  - name: node-affinity-demo
+    image: nginx
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: size
+            operator: In
+            values:
+            - large
+            - small
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: Zone
+            operator: In
+            values:
+            - Zone 1
+            - Zone 2
 ```
