@@ -37,6 +37,11 @@ kubectl create secret generic db-secret \
         --from-literal=DB_Password=password123 
 ```
 ```ruby
+kubectl create secret generic mycert.certs \
+        --from-file=mycert.crt=/tmp/mycert.crt \
+        --from-file=mycert.key=/tmp/mycert.key
+```
+```ruby
 kubectl create secret docker-registry private-reg-cred \
                --docker-username=dock_user \
                --docker-password=dock_password \
