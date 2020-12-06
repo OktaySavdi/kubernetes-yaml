@@ -60,6 +60,14 @@ kubectl set env --from=secret/test-secret dc/map
 kubectl set volume rc/r1 --add --name=v1 --type=secret --secret-name='secret1' --mount-path=/data
 kubectl set volumes dc/myapp --add --name=secret-volume --mount-path=/opt/app-root/ --secret-name=oia-secret
 ```
+**Process**
+```ruby
+kubectl process -f /yaml/myexample.yaml --parameters
+
+kubectl process -f /yaml/myexample.yaml -p SERVICE_NAME=servismesh -p PROJECT=myproject -p SERVICE_PORT=8080 -p HOSTNAME=myap.com
+
+for i in `kubectl get ns | awk '{print $1}'`; do kubectl process -f /yaml/myexample.yaml -p NAMESPACE=${i} | kubectl create -f - ; done
+```
 **Probe**
 ```ruby
 kubectl set probe deployment/hello-node --readiness --get-url=http://:8766/actuator/health --timeout-seconds=1 --initial-delay-seconds=15 --liveness --get-url=http://:8766/actuator/health --timeout-seconds=1 --initial-delay-seconds=15
