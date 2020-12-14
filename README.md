@@ -364,6 +364,19 @@ kubectl uncordon node01 > reactivates the node from maintenance mode. starts pod
 ```ruby
 kubectl cordon node01  > run existing ones but not new pod
 ```
+# ETCD
+```ruby
+kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 etcdctl put oktay savdi \
+--cacert /etc/kubernetes/pki/etcd/ca.crt \
+--cert /etc/kubernetes/pki/etcd/server.crt \
+--key /etc/kubernetes/pki/etcd/server.key" \
+```
+```ruby
+kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 etcdctl get oktay \
+--cacert /etc/kubernetes/pki/etcd/ca.crt \
+--cert /etc/kubernetes/pki/etcd/server.crt \
+--key /etc/kubernetes/pki/etcd/server.key"
+```
 # Backup
 
 ```ruby
