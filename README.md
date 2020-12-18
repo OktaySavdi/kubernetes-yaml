@@ -195,6 +195,13 @@ kubectl -n my-namespace logs -f my-pod --all-containers
 
 # Getting logs of the “previous” container
 kubectl -n my-namespace logs my-pod --previous
+
+# Getting logs of multi pod
+kubectl logs -f deployment/myapp -c myapp --tail 100
+kubectl logs -f deployment/app
+
+kubectl logs -l app=myapp -c myapp --tail 100
+kubectl logs -l app=myapp
 ```
 **Kubernetes API**
 ```ruby
