@@ -90,6 +90,8 @@ TOKEN=`kubectl whoami --show-token`
 URL="$SERVER/oapi/v1/users/~"
 
 curl -H "Authorization: Bearer $TOKEN" $URL --insecure
+
+TOKEN=$(kubectl get secret $(kubectl get sa deploy -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode )
 ```
 **Rollout-Rollback**
 ```ruby
