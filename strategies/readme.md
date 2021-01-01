@@ -35,10 +35,10 @@ metadata:
 spec:
   replicas: 4
   strategy:
-        type: RollingUpdate
-        rollingUpdate:
-           maxSurge: 25%
-           maxUnavailable: 25%
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
   selector:
     matchLabels:
       app: frontent
@@ -59,10 +59,10 @@ metadata:
   name: rolling-update
 spec:
   template:
-        metadata:
-           labels:
-             app: nginx
-             version: "02"
+    metadata:
+      labels:
+        app: nginx
+        version: "02"
   selector:
     matchLabels:
       app: frontent
