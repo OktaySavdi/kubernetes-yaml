@@ -35,6 +35,12 @@ cid=$(crictl ps | grep $(echo $pod_name | cut -d- -f1) | head -n 1 | awk '{ prin
 pid=$(crictl inspect $cid --output yaml | grep 'pid:' | awk '{ print $2 }')
 nsenter -n -t $pid -- tcpdump -s 0 -n -i eth0 -w /tmp/$(hostname)-$(date +"%Y-%m-%d-%H-%M-%S").pcap
 ```
+A process ID (or PID) will be output. Now we can use the  `nsenter`  program to run a command in that process’s network namespace:
+
+```bash
+nsenter -t your-container-pid -n ip addr
+```
+
 ###  #İperf
 
 Purpose: test networking performance between two containers/hosts.
