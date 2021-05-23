@@ -1,5 +1,5 @@
 
-# Kubernetes Dashboard with UnSecurity
+# Kubernetes Dashboard with UnSecure
 
 ### Installation: [URL](https://github.com/kubernetes/dashboard)
 
