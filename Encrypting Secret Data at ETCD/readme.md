@@ -56,3 +56,5 @@ kubectl create secret generic secret1 -n default --from-literal=mykey=mydata
 ```   
 ETCDCTL_API=3 etcdctl --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/apiserver-etcd-client.crt --key=/etc/kubernetes/pki/apiserver-etcd-client.key get /registry/secrets/default/secret1 
 ```   
+
+![image](https://user-images.githubusercontent.com/3519706/120084998-5cabcb00-c0dd-11eb-8303-2cce8740436e.png)
