@@ -175,7 +175,7 @@ kubectl patch pod valid-pod --type='json' -p='[{"op": "replace", "path": "/spec/
 kubectl patch deployment valid-deployment  --type json   -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"}]'
 
 # change pod image version
-oc patch dc nginx --patch='{"spec":{"template":{"spec":{"containers":[{"name": "nginx", "image":"nginx:1.19.1"}]}}}}'
+kubectl patch dc nginx --patch='{"spec":{"template":{"spec":{"containers":[{"name": "nginx", "image":"nginx:1.19.1"}]}}}}'
 
 # Add a new element to a positional array
 kubectl patch sa default --type='json' -p='[{"op": "add", "path": "/secrets/1", "value": {"name": "whatever" } }]'
@@ -207,7 +207,7 @@ kubectl logs -l app=myapp
 ```
 **Kubernetes API**
 ```ruby
-# Use the `oc proxy` command to proxy local requests on port 8001 to the Kubernetes API:
+# Use the `kubectl proxy` command to proxy local requests on port 8001 to the Kubernetes API:
 kubectl proxy --port=8001
 
 # Send a `GET` request to the Kubernetes API using `curl`:
@@ -234,7 +234,7 @@ curl -X DELETE http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-con
 # Verify the pod no longer exists:
 curl -X GET http://localhost:8001/api/v1/namespaces/myproject/pods/my-two-container-pod
 
-# The `oc scale` command interacts with the `/scale` endpoint:
+# The `kubectl scale` command interacts with the `/scale` endpoint:
 curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/scale
 
 # Use the `PUT` method against the `/scale` endpoint to change the number of replicas to 5
