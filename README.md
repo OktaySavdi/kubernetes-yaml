@@ -84,14 +84,12 @@ kubectl create serviceaccount robot
 kubectl policy add-role-to-user admin system:serviceaccount:test:robot
 kubectl serviceaccounts get-token robot
 
-SERVER=`kubectl whoami --show-server`
-TOKEN=`kubectl whoami --show-token`
+SERVER=`cat .kube/config | grep server | sed 's/server: //g'`
+TOKEN=$(kubectl get secret $(kubectl get sa deploy -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode )
 
-URL="$SERVER/oapi/v1/users/~"
+URL="$SERVER/api/v1/nodes"
 
 curl -H "Authorization: Bearer $TOKEN" $URL --insecure
-
-TOKEN=$(kubectl get secret $(kubectl get sa deploy -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode )
 ```
 **Rollout-Rollback**
 ```ruby
