@@ -403,6 +403,17 @@ ETCDCTL_API=3 etcdctl member list \
 --cert=/etc/kubernetes/pki/etcd/server.crt \
 --key=/etc/kubernetes/pki/etcd/server.key
 ```
+
+```ruby
+KEY="/registry/deployments/kube-system/coredns"
+kubectl exec -it etcd-controlplane -- sh -c "ETCDCTL_API=3 etcdctl \
+--endpoints https://127.0.0.1:2379 \
+--cacert /etc/kubernetes/pki/etcd/ca.crt \
+--key /etc/kubernetes/pki/etcd/server.key \
+--cert /etc/kubernetes/pki/etcd/server.crt \
+get \"$KEY\" -w json" | jq '.kvs[0].value' | cut -d'"' -f2 | base64 --decode
+```
+
 # Restore
 
 ```ruby
