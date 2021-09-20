@@ -42,7 +42,7 @@
     
 2.  Add in the YAML for the file:
     
-    ```
+    ```yaml
     apiVersion: policy/v1beta1
     kind: PodSecurityPolicy
     metadata:
@@ -89,7 +89,7 @@
     
 2.  Add in the YAML for the cluster role:
     
-    ```
+    ```yaml
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -122,7 +122,7 @@
     
 6.  Add in the YAML for the role binding:
     
-    ```
+    ```yaml
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
