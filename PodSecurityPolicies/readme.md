@@ -170,18 +170,13 @@ spec:
 ```    
 10.  Create the  `non-privileged-pod.yml`  pod:
     
-    ```
     kubectl create -f non-privileged-yml
-    ```
+    
     
 11.  Look at the pod's contents:
     
-    ```
     cat privileged-pod.yml
-    ```
     
 12.  Create the  `privileged-pod.yml`:
     
-    ```
     kubectl create -f privileged-pod.yml
-    ```
