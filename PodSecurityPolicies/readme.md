@@ -162,7 +162,6 @@ metadata:
   name: non-privileged-pod
   namespace: auth
 spec:
-  serviceAccount: auth-sa
   containers:
   - name: background-monitor
     image: radial/busyboxplus:curl
@@ -183,7 +182,6 @@ metadata:
   name: privileged-pod
   namespace: auth
 spec:
-  serviceAccount: auth-sa
   containers:
   - name: background-monitor
     image: radial/busyboxplus:curl
