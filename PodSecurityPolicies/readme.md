@@ -176,6 +176,21 @@ spec:
 11.  Look at the pod's contents:
     
     cat privileged-pod.yml
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: privileged-pod
+  namespace: auth
+spec:
+  serviceAccount: auth-sa
+  containers:
+  - name: background-monitor
+    image: radial/busyboxplus:curl
+    command: ['sh', '-c', 'while true; do echo "Running..."; sleep 5; done']
+    securityContext:
+      privileged: true
+```
     
 12.  Create the  `privileged-pod.yml`:
     
