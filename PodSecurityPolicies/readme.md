@@ -42,45 +42,45 @@
     
 2.  Add in the YAML for the file:
     
-    ```yaml
-    apiVersion: policy/v1beta1
-    kind: PodSecurityPolicy
-    metadata:
-      name: psp-no-privileged
-    spec:
-      privileged: false
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: false
-      allowHostDirVolumePlugin: false
-      allowHostIPC: false
-      allowHostNetwork: false
-      allowHostPID: false
-      allowHostPorts: false
-      allowPrivilegeEscalation: true
-      allowPrivilegedContainer: false
-      allowedCapabilities: null
-      defaultAddCapabilities: null
-      requiredDropCapabilities:
-      - KILL
-      - MKNOD
-      - SETUID
-      - SETGID
-      runAsUser:
-        rule: MustRunAsNonRoot
-      fsGroup:
-        rule: RunAsAny
-      seLinux:
-        rule: RunAsAny
-      supplementalGroups:
-        rule: RunAsAny
-      volumes:
-      - configMap
-      - downwardAPI
-      - emptyDir
-      - persistentVolumeClaim
-      - secret
-      - projected
-    ```
+```yaml
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: psp-no-privileged
+spec:
+  privileged: false
+  hostPID: false
+  hostIPC: false
+  hostNetwork: false
+  hostPorts: false
+  allowPrivilegeEscalation: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation : false
+  PrivilegedContainer: false
+  allowedCapabilities: null
+  defaultAddCapabilities: null
+  requiredDropCapabilities:
+  - KILL
+  - MKNOD
+  - SETUID
+  - SETGID
+  runAsUser:
+    rule: MustRunAsNonRoot
+  fsGroup:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - secret
+  - projected
+```
     
 3.  Save and exit the file by pressing the Escape key and entering:
     
