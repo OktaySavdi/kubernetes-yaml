@@ -50,7 +50,7 @@
     spec:
       privileged: false
       runAsUser:
-        rule: RunAsAny
+        rule: MustRunAsNonRoot
       fsGroup:
         rule: RunAsAny
       seLinux:
