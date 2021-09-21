@@ -52,12 +52,10 @@ spec:
   hostPID: false
   hostIPC: false
   hostNetwork: false
-  hostPorts: false
   allowPrivilegeEscalation: false
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
   allowPrivilegeEscalation : false
-  PrivilegedContainer: false
   allowedCapabilities: null
   defaultAddCapabilities: null
   requiredDropCapabilities:
