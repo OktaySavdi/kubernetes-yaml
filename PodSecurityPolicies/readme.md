@@ -49,6 +49,22 @@
       name: psp-no-privileged
     spec:
       privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      allowHostDirVolumePlugin: false
+      allowHostIPC: false
+      allowHostNetwork: false
+      allowHostPID: false
+      allowHostPorts: false
+      allowPrivilegeEscalation: true
+      allowPrivilegedContainer: false
+      allowedCapabilities: null
+      defaultAddCapabilities: null
+      requiredDropCapabilities:
+      - KILL
+      - MKNOD
+      - SETUID
+      - SETGID
       runAsUser:
         rule: MustRunAsNonRoot
       fsGroup:
