@@ -386,6 +386,18 @@ kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 etcdctl get okta
 --cert /etc/kubernetes/pki/etcd/server.crt \
 --key /etc/kubernetes/pki/etcd/server.key"
 ```
+```ruby
+kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 --write-out=table endpoint status \
+--cacert /etc/kubernetes/pki/etcd/ca.crt \
+--cert /etc/kubernetes/pki/etcd/server.crt \
+--key /etc/kubernetes/pki/etcd/server.key"
+```
+```ruby
+kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 endpoint health --cluster \
+--cacert /etc/kubernetes/pki/etcd/ca.crt \
+--cert /etc/kubernetes/pki/etcd/server.crt \
+--key /etc/kubernetes/pki/etcd/server.key"
+```
 # Backup
 
 ```ruby
