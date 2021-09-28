@@ -375,16 +375,16 @@ kubectl cordon node01  > run existing ones but not new pod
 ```
 # ETCD
 ```ruby
+kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 endpoint status --cluster --write-out=table \
+--cacert /etc/kubernetes/pki/etcd/ca.crt \
+--cert /etc/kubernetes/pki/etcd/server.crt \
+--key /etc/kubernetes/pki/etcd/server.key"
+```
+```ruby
 kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 member list --write-out table \
 --cacert /etc/kubernetes/pki/etcd/ca.crt \
 --cert /etc/kubernetes/pki/etcd/server.crt \
 --key /etc/kubernetes/pki/etcd/server.key" \
-```
-```ruby
-kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 --write-out=table endpoint status \
---cacert /etc/kubernetes/pki/etcd/ca.crt \
---cert /etc/kubernetes/pki/etcd/server.crt \
---key /etc/kubernetes/pki/etcd/server.key"
 ```
 ```ruby
 kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 endpoint health --cluster \
