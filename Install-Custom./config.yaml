@@ -27,7 +27,7 @@ etcd:
       - "10.10.10.12:2379"
 networking:
   serviceSubnet: "10.96.0.0/12"
-  podSubnet: "172.17.0.28/24"
+  podSubnet: "192.168.0.0/16"
   dnsDomain: "cluster.local"
 kubernetesVersion: "v1.21.5"
 controlPlaneEndpoint: "10.10.10.10:6443"
