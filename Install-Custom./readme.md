@@ -426,3 +426,139 @@ Once the pod network is deployed successfully, add remaining two master nodes to
 ```
 [kadmin@k8s-master-2 ~]$ sudo kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
+Output would be:
+
+![image](https://user-images.githubusercontent.com/3519706/135479876-7acb7021-d731-4f44-b99e-4fa33693139e.png)
+
+Also run the same command on k8s-master-3,
+```
+[kadmin@k8s-master-3 ~]$ sudo kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
+```
+Output would be:
+
+![image](https://user-images.githubusercontent.com/3519706/135480002-becaaaac-cd3b-4de2-b6aa-aa9098f8b609.png)
+
+Above output confirms that k8s-master-3 has also joined the cluster successfully. Let’s verify the nodes status from kubectl command, go to master-1 node and execute below command,
+```
+[kadmin@k8s-master-1 ~]$ kubectl get nodes
+NAME           STATUS   ROLES    AGE     VERSION
+k8s-master-1   Ready    master   31m     v1.18.6
+k8s-master-2   Ready    master   10m     v1.18.6
+k8s-master-3   Ready    master   3m47s   v1.18.6
+```
+erfect, all our three master or control plane nodes are ready and join the cluster.
+
+### Step 7) Join Worker nodes to Kubernetes cluster
+
+To join worker nodes to cluster, copy the command for worker node from output and past it on both worker nodes, example is shown below:
+```
+[kadmin@k8s-worker-1 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
+
+[kadmin@k8s-worker-2 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
+```
+Output would be something like below:
+
+![image](https://user-images.githubusercontent.com/3519706/135480312-db4a0e0d-cc2c-4eb9-8112-a137f6086fe9.png)
+
+Now head to k8s-master-1 node and run below kubectl command to get status worker nodes,
+```
+[kadmin@k8s-master-1 ~]$ kubectl get nodes
+NAME           STATUS   ROLES    AGE     VERSION
+k8s-master-1   Ready    master   43m     v1.18.6
+k8s-master-2   Ready    master   21m     v1.18.6
+k8s-master-3   Ready    master   15m     v1.18.6
+k8s-worker-1   Ready    <none>   6m11s   v1.18.6
+k8s-worker-2   Ready    <none>   5m22s   v1.18.6
+```
+Above output confirms that both workers have also joined the cluster and are in ready state.
+
+Run below command to verify the status infra pods which are deployed in kube-system namespace.
+```
+[kadmin@k8s-master-1 ~]$ kubectl get pods -n kube-system
+```
+![image](https://user-images.githubusercontent.com/3519706/135480597-44696521-1a75-4448-b53f-bcc7cc1d8918.png)
+
+## Step 8) Test Highly available Kubernetes cluster
+
+Let’s try to connect to the cluster from remote machine (CentOS system) using load balancer dns name and port. On the remote machine first, we must install kubectl package. Run below command to set kubernetes repositories.
+
+```
+cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
+EOF
+```
+```
+yum install -y  kubectl --disableexcludes=kubernetes
+```
+Now add following entry in /etc/host file,
+```
+192.168.1.45   vip-k8s-master
+```
+Create kube directory and copy /etc/kubernetes/admin.conf file from k8s-master-1 node to $HOME/.kube/config ,
+```
+$ mkdir -p $HOME/.kube
+$ scp root@192.168.1.40:/etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+Now run “kubectl get nodes” command,
+```
+[kadmin@localhost ~]$ kubectl get nodes
+NAME           STATUS   ROLES    AGE    VERSION
+k8s-master-1   Ready    master   3h5m   v1.18.6
+k8s-master-2   Ready    master   163m   v1.18.6
+k8s-master-3   Ready    master   157m   v1.18.6
+k8s-worker-1   Ready    <none>   148m   v1.18.6
+k8s-worker-2   Ready    <none>   147m   v1.18.6
+```
+Let’s create a deployment with name nginx-lab with image ‘nginx’ and then expose this deployment as service of type “NodePort”
+```
+[kadmin@localhost ~]$ kubectl create deployment nginx-lab --image=nginx
+deployment.apps/nginx-lab created
+
+[kadmin@localhost ~]$ kubectl get deployments.apps nginx-lab
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-lab   1/1     1            1           59s
+
+[kadmin@localhost ~]$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+nginx-lab-5df4577d49-rzv9q   1/1     Running   0          68s
+test-844b65666c-pxpkh        1/1     Running   3          154m
+```
+Let’s try to scale replicas from 1 to 4, run the following command,
+```
+[kadmin@localhost ~]$ kubectl scale deployment nginx-lab --replicas=4
+deployment.apps/nginx-lab scaled
+
+[kadmin@localhost ~]$ kubectl get deployments.apps nginx-lab
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-lab   4/4     4            4           3m10s
+```
+Now expose the deployment as service, run
+```
+[kadmin@localhost ~]$ kubectl expose deployment nginx-lab --name=nginx-lab --type=NodePort --port=80 --target-port=80
+service/nginx-lab exposed
+```
+Get port details and try to access nginx web server using curl,
+```
+[kadmin@localhost ~]$ kubectl get svc nginx-lab
+NAME        TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+nginx-lab   NodePort   10.102.32.29   <none>        80:31766/TCP   60s
+```
+To access nginx web server we can use any master or worker node IP and port as “31766”
+```
+[kadmin@localhost ~]$ curl http://192.168.1.44:31766
+```
+Output would be something like below:
+
+![image](https://user-images.githubusercontent.com/3519706/135481304-989ed0da-621c-46cc-81a9-95c5c7d591c4.png)
+
+Perfect, that’s confirm we have successfully deployed highly available Kubernetes cluster with kubeadm on CentOS 7 servers. Please don’t hesitate to share your valuable feedback and comments.
+
+[+] reference : https://www.linuxtechi.com/setup-highly-available-kubernetes-cluster-kubeadm/
