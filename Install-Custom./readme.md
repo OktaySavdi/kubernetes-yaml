@@ -359,6 +359,43 @@ Run following systemctl command to enable kubelet service on all nodes ( master 
 ```
 sudo systemctl enable kubelet --now
 ```
+#Add proxy configuration for container runtime
+
+CRI-O uses “systemd” as the cgroup driver.
+```
+vi /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+```
+```yaml
+#Note: This dropin only works with kubeadm and kubelet v1.11+
+
+[Service]
+
+Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
+
+Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
+
+#This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
+EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
+#This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use 
+#the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
+Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs" ############
+EnvironmentFile=-/etc/sysconfig/kubelet
+ExecStart=
+ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS $KUBELET_CGROUP_ARGS
+```
+#service enable
+```
+systemctl daemon-reload
+systemctl restart kubelet
+systemctl status kubelet
+systemctl enable crio
+systemctl restart crio
+systemctl status crio
+```
+#test crio
+```
+crio pull nginx
+```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
 Now move to first master node / control plane and issue the following command,
