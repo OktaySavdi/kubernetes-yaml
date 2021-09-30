@@ -383,6 +383,9 @@ Run following commands to allow local user to use kubectl command to interact wi
 ```
 Now, Let’s deploy pod network (CNI – Container Network Interface), in my case I going to deploy calico addon as pod network, run following kubectl command
 ```
-[kadmin@k8s-master-1 ~]$ kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+[kadmin@k8s-master-1 ~]$ kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 ```
-
+Once the pod network is deployed successfully, add remaining two master nodes to cluster. Just copy the command for master node to join the cluster from the output and paste it on k8s-master-2 and k8s-master-3, example is shown below
+```
+[kadmin@k8s-master-2 ~]$ sudo kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
+```
