@@ -60,7 +60,9 @@
     ```bash
     sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
     ```
-    
+    ```bash
+    /var/log/kubernetes
+    ```
 2.  Under the command-line arguments, add the  `audit-policy-file`  flag:
     
     ```yaml
