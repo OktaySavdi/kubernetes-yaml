@@ -222,6 +222,8 @@ firewall-cmd --permanent --add-port=30000-32767/tcp
 firewall-cmd --permanent --add-port=179/tcp
 firewall-cmd --permanent --add-port=4789/udp
 firewall-cmd --reload
+
+
 modprobe br_netfilter
 sh -c "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
 sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
