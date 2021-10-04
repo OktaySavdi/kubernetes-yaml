@@ -180,8 +180,8 @@ Disable Swap Space on all the nodes including worker nodes, Run the following co
 ```
 swapoff -a 
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-Set SELinux as Permissive on all master and worker nodes, run the following commands,
 ```
+Set SELinux as Permissive on all master and worker nodes, run the following commands,
 ```
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
