@@ -50,7 +50,7 @@ yum install haproxy keepalived -y
 ```
 Configure Keepalived on k8s-master-1 first, create check_apiserver.sh script will the following content,
 ```
-[kadmin@k8s-master-1 ~]$ sudo vi /etc/keepalived/check_apiserver.sh
+[kadmin@k8s-master-1 ~]$ vi /etc/keepalived/check_apiserver.sh
 ```
 ```
 #!/bin/sh
@@ -78,7 +78,7 @@ Take the backup of keepalived.conf file and then truncate the file.
 ```
 Now paste the following contents to /etc/keepalived/keepalived.conf file
 ```
-[kadmin@k8s-master-1 ~]$ sudo vi /etc/keepalived/keepalived.conf
+[kadmin@k8s-master-1 ~]$ vi /etc/keepalived/keepalived.conf
 ```
 ```
 ! /etc/keepalived/keepalived.conf
@@ -117,11 +117,11 @@ Save and close the file.
 
 Configure HAProxy on k8s-master-1 node, edit its configuration file and add the following contents:
 ```
-[kadmin@k8s-master-1 ~]$ sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg-org
+[kadmin@k8s-master-1 ~]$ cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg-org
 ```
 Remove all lines after default section and add following lines
 ```
-[kadmin@k8s-master-1 ~]$ sudo vi /etc/haproxy/haproxy.cfg
+[kadmin@k8s-master-1 ~]$ vi /etc/haproxy/haproxy.cfg
 ```
 ```
 #---------------------------------------------------------------------
@@ -268,22 +268,22 @@ priority=1
 
 ```shell
 # Create the .conf file to load the modules at bootup
-cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
+cat <<EOF | tee /etc/modules-load.d/crio.conf
 overlay
 br_netfilter
 EOF
 
-sudo modprobe overlay
-sudo modprobe br_netfilter
+modprobe overlay
+modprobe br_netfilter
 
 # Set up required sysctl params, these persist across reboots.
-cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
-sudo sysctl --system
+sysctl --system
 ```
 To install on the following operating systems, set the environment variable  `OS`  to the appropriate field in the following table:
 
@@ -340,7 +340,7 @@ no_proxy=localhost,.nip.io,.mydomain.com,.mydomain2.com,.mydomain.com3,127.0.0.1
 Install **kubeadm, kubelet** and **kubectl** on all master nodes as well as worker nodes. Before installing these packages first, we must configure Kubernetes repository, run the following command on each master and worker nodes,
 
 ```bash
-cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
@@ -357,7 +357,7 @@ yum install kubelet-1.21.5-0 kubeadm-1.21.5-0 kubectl-1.21.5-0 --disableexcludes
 ```
 Run following systemctl command to enable kubelet service on all nodes ( master and worker nodes)
 ```
-sudo systemctl enable kubelet --now
+systemctl enable kubelet --now
 ```
 #Add proxy configuration for container runtime
 
@@ -415,8 +415,8 @@ Great, above output confirms that Kubernetes cluster has been initialized succes
 Run following commands to allow local user to use kubectl command to interact with cluster,
 ```
 [kadmin@k8s-master-1 ~]$ mkdir -p $HOME/.kube
-[kadmin@k8s-master-1 ~]$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-[kadmin@k8s-master-1 ~]$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+[kadmin@k8s-master-1 ~]$ cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+[kadmin@k8s-master-1 ~]$ chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 Now, Let’s deploy pod network (CNI – Container Network Interface), in my case I going to deploy calico addon as pod network, run following kubectl command
 ```
@@ -424,7 +424,7 @@ Now, Let’s deploy pod network (CNI – Container Network Interface), in my cas
 ```
 Once the pod network is deployed successfully, add remaining two master nodes to cluster. Just copy the command for master node to join the cluster from the output and paste it on k8s-master-2 and k8s-master-3, example is shown below
 ```
-[kadmin@k8s-master-2 ~]$ sudo kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
+[kadmin@k8s-master-2 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
 Output would be:
 
@@ -432,7 +432,7 @@ Output would be:
 
 Also run the same command on k8s-master-3,
 ```
-[kadmin@k8s-master-3 ~]$ sudo kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
+[kadmin@k8s-master-3 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
 Output would be:
 
@@ -483,7 +483,7 @@ Run below command to verify the status infra pods which are deployed in kube-sys
 Let’s try to connect to the cluster from remote machine (CentOS system) using load balancer dns name and port. On the remote machine first, we must install kubectl package. Run below command to set kubernetes repositories.
 
 ```
-cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
@@ -505,7 +505,7 @@ Create kube directory and copy /etc/kubernetes/admin.conf file from k8s-master-1
 ```
 $ mkdir -p $HOME/.kube
 $ scp root@192.168.1.40:/etc/kubernetes/admin.conf $HOME/.kube/config
-$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+$ chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 Now run “kubectl get nodes” command,
 ```
