@@ -356,9 +356,9 @@ Great, above output confirms that Kubernetes cluster has been initialized succes
 
 Run following commands to allow local user to use kubectl command to interact with cluster,
 ```
-[kadmin@k8s-master-1 ~]$ mkdir -p $HOME/.kube
-[kadmin@k8s-master-1 ~]$ cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-[kadmin@k8s-master-1 ~]$ chown $(id -u):$(id -g) $HOME/.kube/config
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 Now, Let’s deploy pod network (CNI – Container Network Interface), in my case I going to deploy calico addon as pod network, run following kubectl command
 ```
