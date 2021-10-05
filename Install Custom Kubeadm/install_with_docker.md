@@ -281,7 +281,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 priority=1
 ```
 ````shell
-yum install docker yum-utils device-mapper-persistent-data lvm2 -y
+yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
 ````
 ````shell
 systemctl enable docker --now
