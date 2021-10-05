@@ -33,12 +33,12 @@ exec bash
 Similarly, run above command on remaining nodes and set their respective hostname. 
 Once hostname is set on all master and worker nodes then add the following entries in **/etc/hosts** file on all the nodes.
 ```
-echo "192.168.1.40   k8s-master-1 | tee --append /etc/hosts    
-echo "192.168.1.41   k8s-master-2 | tee --append /etc/hosts
-echo "192.168.1.42   k8s-master-3 | tee --append /etc/hosts
-echo "192.168.1.43   k8s-worker-1 | tee --append /etc/hosts
-echo "192.168.1.44   k8s-worker-2 | tee --append /etc/hosts
-echo "192.168.1.45   vip-k8s-master | tee --append /etc/hosts
+echo "192.168.1.40   k8s-master-1" | tee --append /etc/hosts    
+echo "192.168.1.41   k8s-master-2" | tee --append /etc/hosts
+echo "192.168.1.42   k8s-master-3" | tee --append /etc/hosts
+echo "192.168.1.43   k8s-worker-1" | tee --append /etc/hosts
+echo "192.168.1.44   k8s-worker-2" | tee --append /etc/hosts
+echo "192.168.1.45   vip-k8s-master" | tee --append /etc/hosts
 ```
 I have used one additional entry **192.168.1.45   vip-k8s-master** in host file because I will be using this IP and hostname while configuring the haproxy and keepalived on all master nodes. This IP will be used as **kube-apiserver load balancer ip**. All the kube-apiserver request will come to this IP and then the request will be distributed among backend actual kube-apiservers.
 
