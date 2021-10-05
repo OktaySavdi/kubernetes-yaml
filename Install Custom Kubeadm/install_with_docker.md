@@ -325,7 +325,7 @@ Environment="HTTP_PROXY=http://proxy.example.com:80"
 Environment="HTTPS_PROXY=http://proxy.example.com:80"
 Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 ```
-```
+
 #service enable
 ```
 systemctl daemon-reload
