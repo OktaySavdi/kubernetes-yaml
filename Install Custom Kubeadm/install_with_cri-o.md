@@ -285,13 +285,13 @@ yum install yum-utils device-mapper-persistent-data lvm2 bash-completion -y
 ```
 **letting ipTables see bridged networks**
 ```shell
-cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+cat <<EOF | tee /etc/modules-load.d/k8s.conf
 br_netfilter
 EOF
 ```
 **Create the .conf file to load the modules at bootup**
 ```
-cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
+cat <<EOF | tee /etc/modules-load.d/crio.conf
 overlay
 br_netfilter
 EOF
@@ -302,14 +302,14 @@ modprobe br_netfilter
 ```
 ***Set up required sysctl params, these persist across reboots.**
 ```
-cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 ```
 ```
-sudo sysctl --system
+sysctl --system
 ```
 Now, let’s install kubeadm , kubelet and kubectl in the next step
 
@@ -344,9 +344,9 @@ OS=CentOS_7
 #set CRI-O
 VERSION=1.20
 
-sudo curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
-sudo curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
-sudo yum install cri-o
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
+yum install cri-o
 ```
 
 Now run below yum command to install these packages,
@@ -362,7 +362,7 @@ Couple of modifications should be made to kubelet service config to make it work
 vi /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
 ```
 ```
-`# Note: This dropin only works with kubeadm and kubelet v1.11+`
+# Note: This dropin only works with kubeadm and kubelet v1.11+
 [Service]
 Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
 Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
@@ -370,7 +370,6 @@ Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
 EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
 # This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
 # the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
-## The following line to be added for CRI-O
 Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=systemd"
 EnvironmentFile=-/etc/sysconfig/kubelet
 ExecStart=
