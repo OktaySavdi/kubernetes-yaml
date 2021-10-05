@@ -80,19 +80,42 @@
 4.  Configure the API server to keep old log files a maximum of 60 days with a maximum of only 1 old log file:
     
     ```yaml
-    - --audit-log-maxage=60
+    - --audit-log-maxage=30
     - --audit-log-maxbackup=1
+    - --audit-log-maxsize=100
     ```
+5.  then mount the volumes:
+
+```yaml
+volumeMounts:
+  - mountPath: /etc/kubernetes/audit-policy.yaml
+    name: audit
+    readOnly: true
+  - mountPath: /var/log/audit.log
+    name: audit-log
+    readOnly: false
+```
+and finally configure the hostPath:
+```yaml
+- name: audit
+  hostPath:
+    path: /etc/kubernetes/audit-policy.yaml
+    type: File
+
+- name: audit-log
+  hostPath:
+    path: /var/log/audit.log
+    type: FileOrCreate
+```    
+6.  To save and exit the file, press  **Escape**, type  `:wq`, and hit  **Enter**.
     
-5.  To save and exit the file, press  **Escape**, type  `:wq`, and hit  **Enter**.
-    
-6.  Once kube-apiserver has been re-created, check the nodes:
+7.  Once kube-apiserver has been re-created, check the nodes:
     
     ```
     kubectl get nodes
     ```
     
-7.  View the audit logs:
+8.  View the audit logs:
     
     ```
     sudo tail -f /var/log/kubernetes/k8s-audit.log
