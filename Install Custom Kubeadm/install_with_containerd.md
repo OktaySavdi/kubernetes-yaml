@@ -287,8 +287,8 @@ overlay
 br_netfilter
 EOF
 
-sudo modprobe overlay
-sudo modprobe br_netfilter
+modprobe overlay
+modprobe br_netfilter
 ```
 Setup the required kernel parameters:
 ```shell
