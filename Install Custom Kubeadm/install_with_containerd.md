@@ -32,7 +32,7 @@ exec bash
 ```
 Similarly, run above command on remaining nodes and set their respective hostname. 
 Once hostname is set on all master and worker nodes then add the following entries in **/etc/hosts** file on all the nodes.
-```
+```shell
 echo "192.168.1.40   k8s-master-1" | tee --append /etc/hosts    
 echo "192.168.1.41   k8s-master-2" | tee --append /etc/hosts
 echo "192.168.1.42   k8s-master-3" | tee --append /etc/hosts
@@ -43,7 +43,7 @@ echo "192.168.1.45   vip-k8s-master" | tee --append /etc/hosts
 I have used one additional entry **192.168.1.45   vip-k8s-master** in host file because I will be using this IP and hostname while configuring the haproxy and keepalived on all master nodes. This IP will be used as **kube-apiserver load balancer ip**. All the kube-apiserver request will come to this IP and then the request will be distributed among backend actual kube-apiservers.
 
 Deploy ssh key from LB server to all nodes
-```
+```shell
 ssh-keygen
 ```
 ```bash
@@ -58,14 +58,14 @@ done
 ### Step 2) Install and Configure Keepalive and HAProxy on all master / control plane nodes
 
 Install keepalived and haproxy on each master node using the following yum command,
-```
+```shell
 yum install haproxy keepalived -y
 ```
 Configure Keepalived on k8s-master-1 first, create check_apiserver.sh script will the following content,
-```
+```shell
 [kadmin@k8s-master-1 ~]$ vi /etc/keepalived/check_apiserver.sh
 ```
-```
+```shell
 #!/bin/sh
 APISERVER_VIP=192.168.1.45
 APISERVER_DEST_PORT=6443
@@ -85,15 +85,15 @@ save and exit the file.
 Set the executable permissions
 
 Take the backup of keepalived.conf file and then truncate the file.
-```
+```shell
 [kadmin@k8s-master-1 ~]$ cp /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf-org
 [kadmin@k8s-master-1 ~]$ sh -c '> /etc/keepalived/keepalived.conf'
 ```
 Now paste the following contents to /etc/keepalived/keepalived.conf file
-```
+```shell
 [kadmin@k8s-master-1 ~]$ vi /etc/keepalived/keepalived.conf
 ```
-```
+```yaml
 ! /etc/keepalived/keepalived.conf
 ! Configuration File for keepalived
 global_defs {
@@ -129,14 +129,14 @@ Save and close the file.
 `Note:` Only two parameters of this file need to be changed for master-2 & 3 nodes. **State** will become **SLAVE** for master 2 and 3, priority will be 254 and 253 respectively.
 
 Configure HAProxy on k8s-master-1 node, edit its configuration file and add the following contents:
-```
+```shell
 [kadmin@k8s-master-1 ~]$ cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg-org
 ```
 Remove all lines after default section and add following lines
-```
+```shell
 [kadmin@k8s-master-1 ~]$ vi /etc/haproxy/haproxy.cfg
 ```
-```
+```yaml
 #---------------------------------------------------------------------
 # apiserver frontend which proxys to the masters
 #---------------------------------------------------------------------
@@ -165,19 +165,19 @@ Save and exit the file
 Now copy theses three files (**check_apiserver.sh , keepalived.conf** and **haproxy.cfg**) from k8s-master-1 to k8s-master-2 & 3
 
 Run the following for loop to scp these files to master 2 and 3
-```
+```shell
 [kadmin@k8s-master-1 ~]$ for f in k8s-master-2 k8s-master-3; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
 ```
 **Note:** Don’t forget to change two parameters in keepalived.conf file that we discuss above for k8s-master-2 & 3
 
 In case firewall is running on master nodes then add the following firewall rules on all three master nodes
-```
+```shell
 firewall-cmd --add-rich-rule='rule protocol value="vrrp" accept' --permanent
 firewall-cmd --permanent --add-port=8443/tcp
 firewall-cmd --reload
 ```
 Now Finally start and enable keepalived and haproxy service on all three master nodes using the following commands :
-```
+```shell
 systemctl enable keepalived --now
 systemctl enable haproxy --now
 ```
@@ -190,12 +190,12 @@ Perfect, above output confirms that VIP has been enabled on k8s-master-1.
 ### Step 3) Disable Swap, set SELinux as permissive and firewall rules for Master and worker nodes
 
 Disable Swap Space on all the nodes including worker nodes, Run the following commands
-```
+```shell
 swapoff -a 
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 ```
 Set SELinux as Permissive on all master and worker nodes, run the following commands,
-```
+```shell
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 ```
@@ -207,7 +207,7 @@ In case firewall is running on master nodes, then allow the following ports in t
 
 Run the following firewall-cmd command on all the master nodes,
 
-```
+```shell
 firewall-cmd --permanent --add-port=6443/tcp
 firewall-cmd --permanent --add-port=2379-2380/tcp
 firewall-cmd --permanent --add-port=10250/tcp
@@ -229,7 +229,7 @@ In case firewall is running on worker nodes, then allow the following ports in t
 ![image](https://user-images.githubusercontent.com/3519706/135464936-9c1a12ce-bf12-4cbe-8c04-c1e953f4957f.png)
 
 Run the following commands on all the worker nodes,
-```
+```shell
 firewall-cmd --permanent --add-port=10250/tcp
 firewall-cmd --permanent --add-port=30000-32767/tcp                                                   
 firewall-cmd --permanent --add-port=179/tcp
@@ -369,7 +369,7 @@ ctr image pull quay.io/oktaysavdi/istioproject
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
 Now move to first master node / control plane and issue the following command,
-```
+```shell
 [kadmin@k8s-master-1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:8443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
