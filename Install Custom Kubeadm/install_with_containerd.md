@@ -281,7 +281,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 priority=1
 ```
 Load the necessary modules for Containerd:
-```
+```shell
 cat <<EOF | tee /etc/modules-load.d/containerd.conf
 overlay
 br_netfilter
@@ -291,7 +291,7 @@ sudo modprobe overlay
 sudo modprobe br_netfilter
 ```
 Setup the required kernel parameters:
-```
+```shell
 cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
@@ -299,12 +299,6 @@ net.ipv4.ip_forward = 1
 EOF
 
 sysctl --system
-```
-Configure containerd:
-```
-mkdir -p /etc/containerd
-containerd config default | tee /etc/containerd/config.toml
-systemctl restart containerd
 ```
 ````shell
 yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
@@ -314,6 +308,12 @@ download containerd rpm files in https://download.docker.com/linux/centos/7/x86_
 wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.9-3.1.el7.x86_64.rpm
 rmp -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
 ````
+Configure containerd:
+```shell
+mkdir -p /etc/containerd
+containerd config default | tee /etc/containerd/config.toml
+systemctl restart containerd
+```
 Now, let’s install kubeadm , kubelet and kubectl in the next step
 
 ### Step 5) Install Kubeadm, kubelet and kubectl
@@ -341,10 +341,10 @@ Run following systemctl command to enable kubelet service on all nodes ( master 
 systemctl enable kubelet --now
 ```
 #Add proxy configuration for container runtime
-```
+```shell
 vi /usr/lib/systemd/system/containerd.service
 ```
-```
+```shell
 [Service]
 ExecStartPre=-/sbin/modprobe overlay
 ExecStart=/usr/bin/containerd
@@ -354,7 +354,7 @@ Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 ```
 
 #service enable
-```
+```shell
 systemctl daemon-reload
 systemctl restart kubelet
 systemctl status kubelet
