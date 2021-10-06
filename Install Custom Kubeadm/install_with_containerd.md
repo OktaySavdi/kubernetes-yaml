@@ -241,7 +241,7 @@ modprobe br_netfilter
 sh -c "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
 sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
 ```
-### Step 4) Install Container Run Time (CRI) Docker on Master & Worker Nodes
+### Step 4) Install Container Run Time (CRI) Containerd on Master & Worker Nodes
 
 Install Docker (Container Run Time) on all the master nodes and worker nodes, run the following command,
 
@@ -280,11 +280,39 @@ gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 priority=1
 ```
+Load the necessary modules for Containerd:
+```
+cat <<EOF | tee /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+```
+Setup the required kernel parameters:
+```
+cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+sysctl --system
+```
+Configure containerd:
+```
+mkdir -p /etc/containerd
+containerd config default | tee /etc/containerd/config.toml
+systemctl restart containerd
+```
 ````shell
 yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
 ````
+download containerd rpm files in https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
 ````shell
-systemctl enable docker --now
+wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.9-3.1.el7.x86_64.rpm
+rmp -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
 ````
 Now, let’s install kubeadm , kubelet and kubectl in the next step
 
@@ -314,13 +342,12 @@ systemctl enable kubelet --now
 ```
 #Add proxy configuration for container runtime
 ```
-mkdir /etc/systemd/system/docker.service.d
-```
-```
-vi /etc/systemd/system/docker.service.d/http-proxy.conf
+vi /usr/lib/systemd/system/containerd.service
 ```
 ```
 [Service]
+ExecStartPre=-/sbin/modprobe overlay
+ExecStart=/usr/bin/containerd
 Environment="HTTP_PROXY=http://proxy.example.com:80"
 Environment="HTTPS_PROXY=http://proxy.example.com:80"
 Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
@@ -329,14 +356,15 @@ Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 #service enable
 ```
 systemctl daemon-reload
-systemctl restart docker
-systemctl status docker
 systemctl restart kubelet
 systemctl status kubelet
+systemctl enable containerd
+systemctl restart containerd
+systemctl status containerd
 ```
-#test docker
+#test containerd
 ```
-docker pull quay.io/oktaysavdi/istioproject
+ctr image pull quay.io/oktaysavdi/istioproject
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
@@ -503,4 +531,8 @@ Output would be something like below:
 
 Perfect, that’s confirm we have successfully deployed highly available Kubernetes cluster with kubeadm on CentOS 7 servers. Please don’t hesitate to share your valuable feedback and comments.
 
-[+] reference : https://www.linuxtechi.com/setup-highly-available-kubernetes-cluster-kubeadm/
+[+] reference : https://averagelinuxuser.com/kubernetes_containerd/
+
+[+] Package1  : https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
+
+[+] Package2  : https://centos.pkgs.org/7/docker-ce-stable-x86_64/
