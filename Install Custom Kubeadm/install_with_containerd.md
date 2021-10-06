@@ -306,7 +306,7 @@ yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion 
 download containerd rpm files in https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
 ````shell
 wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.9-3.1.el7.x86_64.rpm
-rmp -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
+rpm -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
 ````
 Configure containerd:
 ```shell
