@@ -144,6 +144,7 @@
 ```plaintext
 diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
+[+] reference: https://www.ibm.com/docs/en/fci/1.1.0?topic=kubernetes-renewing-cluster-certificates
     
 If there is no output, the  `kubelet.conf`  file was not updated with the new certificate information.
     
