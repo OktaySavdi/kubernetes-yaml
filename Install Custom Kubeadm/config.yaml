@@ -14,6 +14,16 @@ localAPIEndpoint:
   advertiseAddress: "10.10.10.10"
   bindPort: 6443
 ---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+ipvs:
+  excludeCIDRs: null
+  minSyncPeriod: 0s
+  scheduler: rr
+  strictARP: false
+  syncPeriod: 30s
+mode: ipvs
+---
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
 etcd:
