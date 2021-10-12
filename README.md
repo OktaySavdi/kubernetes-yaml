@@ -10,6 +10,10 @@ kubectl run nginx --image nginx --replicas=1 \
                   --labels='app=nginx' --dry-run -o yaml \
                   --command -- sleep 1000
 ```
+**CERT**
+```
+kubeadm alpha certs check-expiration
+```
 **ConfigMap**
 ```ruby
 kubectl create configmap webapp-config-map
