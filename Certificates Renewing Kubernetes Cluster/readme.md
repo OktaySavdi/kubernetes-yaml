@@ -144,8 +144,6 @@
 ```plaintext
 diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
-[+] reference: https://www.ibm.com/docs/en/fci/1.1.0?topic=kubernetes-renewing-cluster-certificates
-    
 If there is no output, the  `kubelet.conf`  file was not updated with the new certificate information.
     
 10.  Update the  `/etc/kubernetes/kubelet.conf`  file and display the difference from the old version to the new one:
@@ -201,3 +199,5 @@ kubectl get nodes
 ```plaintext
 kubectl get pods
 ```
+
+[+] reference: https://www.ibm.com/docs/en/fci/1.1.0?topic=kubernetes-renewing-cluster-certificates
