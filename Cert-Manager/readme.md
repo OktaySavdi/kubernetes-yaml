@@ -7,7 +7,7 @@ To install cert-manager, complete the following steps:
 2.  Run the following command to install the cert-manager resources from a YAML manifest file on GitHub:
     
     ```plaintext
-    kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
+    kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/download/cert-manager.yaml
     ```
     
 3.  To verify the installation, run the following command:
