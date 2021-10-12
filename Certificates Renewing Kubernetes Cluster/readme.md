@@ -134,8 +134,7 @@
     If you get a response similar to the following:
     
     ```plaintext
-    The connection to the server 9.37.21.119:6443 was refused - did you specify the right host or port?
-    
+    The connection to the server 9.37.21.119:6443 was refused - did you specify the right host or port? 
     ```
     
     continue with the next steps to resolve the issue. Otherwise, your Kubernetes cluster certificates have been successfully renewed.
@@ -146,7 +145,7 @@
 diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
     
-    If there is no output, the  `kubelet.conf`  file was not updated with the new certificate information.
+If there is no output, the  `kubelet.conf`  file was not updated with the new certificate information.
     
 10.  Update the  `/etc/kubernetes/kubelet.conf`  file and display the difference from the old version to the new one:
     
@@ -188,7 +187,7 @@ In the  `~/.kube/config`  file, replace the information after  `client-certifica
 systemctl daemon-reload&&systemctl restart kubelet
 ```
     
-    This command is successful if there is no output.
+This command is successful if there is no output.
     
 14.  Verify master and worker nodes are available:
     
