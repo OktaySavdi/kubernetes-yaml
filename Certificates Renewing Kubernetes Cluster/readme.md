@@ -154,7 +154,7 @@ sudo kubeadm alpha kubeconfig user --org system:nodes --client-name system:node:
 diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
     
-    If the output shows a difference, the file  `kubelet.conf`  was updated with the new certificate information.
+If the output shows a difference, the file  `kubelet.conf`  was updated with the new certificate information.
     
 11.  Run the following command:
     
@@ -162,7 +162,7 @@ diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 diff ~/.kube/config $HOME/fcik8s-old-certs/.kube/config
 ```
     
-    If there is no output, the  `config`  file still has the outdated keys and certificate values in it.
+If there is no output, the  `config`  file still has the outdated keys and certificate values in it.
     
 12.  Update  `client-certificate-data`  and  `client-key-data`  in  `~/.kube/config`  with the values from the updated file in  `/etc/kubernetes/kubelet.conf`:
 ```plaintext
