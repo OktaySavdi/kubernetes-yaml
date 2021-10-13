@@ -33,15 +33,28 @@ exec bash
 Similarly, run above command on remaining nodes and set their respective hostname. 
 Once hostname is set on all master and worker nodes then add the following entries in **/etc/hosts** file on all the nodes.
 ```
-192.168.1.40   k8s-master-1
-192.168.1.41   k8s-master-2
-192.168.1.42   k8s-master-3
-192.168.1.43   k8s-worker-1
-192.168.1.44   k8s-worker-2
-192.168.1.45   vip-k8s-master
+echo "192.168.1.40   k8s-master-1" | tee --append /etc/hosts    
+echo "192.168.1.41   k8s-master-2" | tee --append /etc/hosts
+echo "192.168.1.42   k8s-master-3" | tee --append /etc/hosts
+echo "192.168.1.43   k8s-worker-1" | tee --append /etc/hosts
+echo "192.168.1.44   k8s-worker-2" | tee --append /etc/hosts
+echo "192.168.1.45   vip-k8s-master" | tee --append /etc/hosts
 ```
 I have used one additional entry **192.168.1.45   vip-k8s-master** in host file because I will be using this IP and hostname while configuring the haproxy and keepalived on all master nodes. This IP will be used as **kube-apiserver load balancer ip**. All the kube-apiserver request will come to this IP and then the request will be distributed among backend actual kube-apiservers.
 
+Deploy ssh key from LB server to all nodes
+```
+ssh-keygen
+```
+```bash
+for host in 192.168.1.40 \
+            192.168.1.41 \
+            192.168.1.42 \
+            192.168.1.43 \
+            192.168.1.44 \
+do ssh-copy-id -i ~/.ssh/id_rsa.pub $host; \
+done
+```
 ### Step 2) Install and Configure Keepalive and HAProxy on all master / control plane nodes
 
 Install keepalived and haproxy on each master node using the following yum command,
@@ -230,14 +243,12 @@ sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
 ```
 ### Step 4) Install Container Run Time (CRI) CRI-O on Master & Worker Nodes
 
-This section contains the necessary steps to use containerd as CRI runtime.
-
-Use the following commands to install Containerd on your system:
+Install **CRI-O**(Container Run Time) on all the master nodes and worker nodes, run the following command,
 
 Install and configure prerequisites:
 
 Add centos repo
-```
+```shell
 [extras]
 name=CentOS-$releasever - Extras
 mirrorlist=http://mirrorlist.centos.org/?release=7&arch=
@@ -269,76 +280,39 @@ gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 priority=1
 ```
-
 ```shell
-# Create the .conf file to load the modules at bootup
+yum install yum-utils device-mapper-persistent-data lvm2 bash-completion -y
+```
+**letting ipTables see bridged networks**
+```shell
+cat <<EOF | tee /etc/modules-load.d/k8s.conf
+br_netfilter
+EOF
+```
+**Create the .conf file to load the modules at bootup**
+```
 cat <<EOF | tee /etc/modules-load.d/crio.conf
 overlay
 br_netfilter
 EOF
-
+```
+```
 modprobe overlay
 modprobe br_netfilter
-
-# Set up required sysctl params, these persist across reboots.
+```
+***Set up required sysctl params, these persist across reboots.**
+```
 cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
-
+```
+```
 sysctl --system
 ```
-To install on the following operating systems, set the environment variable  `OS`  to the appropriate field in the following table:
+Now, let’s install kubeadm , kubelet and kubectl in the next step
 
-Operating system 
-
-| Operating system |  `$OS` |
-|--|--|
-| Centos 8 | `CentOS_8` |
-| Centos 8 Stream | `CentOS_8_Stream` |
-| Centos 7 | `CentOS_7` |
-  
-Then, set  `$VERSION`  to the CRI-O version that matches your Kubernetes version. For instance, 
-if you want to install CRI-O 1.20, set  `VERSION=1.20`. You can pin your installation to a specific release. 
-To install version 1.20.0, set  `VERSION=1.20:1.20.0`.  
-```shell
-OS=CentOS_7
-VERSION=1.22
-
-curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
-curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
-yum install cri-o -y
-```
-Start CRI-O:
-```shell
-systemctl daemon-reload
-systemctl enable crio --now
-```
-
-Refer to the  [CRI-O installation guide](https://github.com/cri-o/cri-o/blob/master/install.md)  for more information.
-
-**cgroup driver[](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#cgroup-driver)**
-
-CRI-O uses the systemd cgroup driver per default. To switch to the  `cgroupfs`  cgroup driver, 
-either edit  `/etc/crio/crio.conf`  or place a drop-in configuration in  `/etc/crio/crio.conf.d/02-cgroup-manager.conf`, for example:
-
-```toml
-[crio.runtime]
-conmon_cgroup = "pod"
-cgroup_manager = "cgroupfs"
-```
-Please also note the changed  `conmon_cgroup`, which has to be set to the value  `pod`  when using CRI-O with  `cgroupfs`. It is generally necessary to keep the cgroup driver configuration of the kubelet (usually done via kubeadm) and CRI-O in sync
-
-**Add proxy configuration for container runtime**
-```
-vi /etc/sysconfig/crio
-```
-```
-http_proxy=http://myproxy.com:80
-https_proxy=http://myproxy.com:80
-no_proxy=localhost,.nip.io,.mydomain.com,.mydomain2.com,.mydomain.com3,127.0.0.1
-```
 ### Step 5) Install Kubeadm, kubelet and kubectl
 
 Install **kubeadm, kubelet** and **kubectl** on all master nodes as well as worker nodes. Before installing these packages first, we must configure Kubernetes repository, run the following command on each master and worker nodes,
@@ -355,39 +329,66 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 ```
+**Install CRI-O binaries**
+
+| Operating system | `$OS` |
+|--|--|
+| Centos 8 | `CentOS_8` |
+| Centos 8 Stream| `CentOS_8_Stream` |
+| Centos 7 | `CentOS_7` |
+
+```shell
+#set OS version
+OS=CentOS_7
+
+#set CRI-O
+VERSION=1.22
+
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
+yum install -y cri-o
+```
+
 Now run below yum command to install these packages,
 ```
-yum install kubelet-1.21.5-0 kubeadm-1.21.5-0 kubectl-1.21.5-0 --disableexcludes=kubernetes
+yum install -y kubelet-1.22.2-0 kubeadm-1.22.2-0 kubectl-1.22.2-0 --disableexcludes=kubernetes
 ```
 Run following systemctl command to enable kubelet service on all nodes ( master and worker nodes)
 ```
 systemctl enable kubelet --now
 ```
-#Add proxy configuration for container runtime
-
-CRI-O uses “systemd” as the cgroup driver.
+Couple of modifications should be made to kubelet service config to make it work fine with CRI-O, hoping that this would be automatically fixed in future releases of Kubernetes. CRI-O uses `systemd` as the cgroup driver. Follow these instructions carefully. Edit this file at `/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf`, and make sure you add the highlighted lines as indicated below.
 ```
 vi /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
 ```
-```yaml
-#Note: This dropin only works with kubeadm and kubelet v1.11+
-
+```
+# Note: This dropin only works with kubeadm and kubelet v1.11+
 [Service]
-
 Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
-
 Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
-
-#This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
+# This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
 EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
-#This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use 
-#the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
-Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs" ############
+# This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
+# the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
+Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=systemd"
 EnvironmentFile=-/etc/sysconfig/kubelet
 ExecStart=
 ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS $KUBELET_CGROUP_ARGS
 ```
-#service enable
+The file should look like this one
+
+![image](https://user-images.githubusercontent.com/3519706/136039584-20d5e6f0-54c0-4c4e-9f24-6c5c52f7e510.png)
+
+**Add proxy configuration for container runtime**
+```
+vi /etc/sysconfig/crio
+```
+```
+HTTP_PROXY=http://proxy.example.com:80
+HTTPS_PROXY=http://proxy.example.com:80
+NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com
+```
+**Service enable**
 ```
 systemctl daemon-reload
 systemctl restart kubelet
@@ -396,15 +397,15 @@ systemctl enable crio
 systemctl restart crio
 systemctl status crio
 ```
-#test crio
+**Test cri-o**
 ```
-crio pull nginx
+crictl pull quay.io/oktaysavdi/istioproject
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
 Now move to first master node / control plane and issue the following command,
 ```
-[kadmin@k8s-master-1 ~]$ kubeadm init --config=config.yaml --upload-certs
+[kadmin@k8s-master-1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:8443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
 
@@ -418,9 +419,9 @@ Great, above output confirms that Kubernetes cluster has been initialized succes
 
 Run following commands to allow local user to use kubectl command to interact with cluster,
 ```
-[kadmin@k8s-master-1 ~]$ mkdir -p $HOME/.kube
-[kadmin@k8s-master-1 ~]$ cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-[kadmin@k8s-master-1 ~]$ chown $(id -u):$(id -g) $HOME/.kube/config
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 Now, Let’s deploy pod network (CNI – Container Network Interface), in my case I going to deploy calico addon as pod network, run following kubectl command
 ```
@@ -565,4 +566,4 @@ Output would be something like below:
 
 Perfect, that’s confirm we have successfully deployed highly available Kubernetes cluster with kubeadm on CentOS 7 servers. Please don’t hesitate to share your valuable feedback and comments.
 
-[+] reference : https://www.linuxtechi.com/setup-highly-available-kubernetes-cluster-kubeadm/
+[+] reference : https://arabitnetwork.com/2021/02/20/install-kubernetes-with-cri-o-on-centos-7-step-by-step/
