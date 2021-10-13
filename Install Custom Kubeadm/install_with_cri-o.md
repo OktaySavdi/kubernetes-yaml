@@ -32,7 +32,7 @@ exec bash
 ```
 Similarly, run above command on remaining nodes and set their respective hostname. 
 Once hostname is set on all master and worker nodes then add the following entries in **/etc/hosts** file on all the nodes.
-```
+```shell
 echo "192.168.1.40   k8s-master-1" | tee --append /etc/hosts    
 echo "192.168.1.41   k8s-master-2" | tee --append /etc/hosts
 echo "192.168.1.42   k8s-master-3" | tee --append /etc/hosts
@@ -43,10 +43,10 @@ echo "192.168.1.45   vip-k8s-master" | tee --append /etc/hosts
 I have used one additional entry **192.168.1.45   vip-k8s-master** in host file because I will be using this IP and hostname while configuring the haproxy and keepalived on all master nodes. This IP will be used as **kube-apiserver load balancer ip**. All the kube-apiserver request will come to this IP and then the request will be distributed among backend actual kube-apiservers.
 
 Deploy ssh key from LB server to all nodes
-```
+```shell
 ssh-keygen
 ```
-```bash
+```shell
 for host in 192.168.1.40 \
             192.168.1.41 \
             192.168.1.42 \
@@ -58,14 +58,14 @@ done
 ### Step 2) Install and Configure Keepalive and HAProxy on all master / control plane nodes
 
 Install keepalived and haproxy on each master node using the following yum command,
-```
+```shell
 yum install haproxy keepalived -y
 ```
 Configure Keepalived on k8s-master-1 first, create check_apiserver.sh script will the following content,
-```
+```shell
 [kadmin@k8s-master-1 ~]$ vi /etc/keepalived/check_apiserver.sh
 ```
-```
+```shell
 #!/bin/sh
 APISERVER_VIP=192.168.1.45
 APISERVER_DEST_PORT=6443
@@ -85,15 +85,15 @@ save and exit the file.
 Set the executable permissions
 
 Take the backup of keepalived.conf file and then truncate the file.
-```
+```shell
 [kadmin@k8s-master-1 ~]$ cp /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf-org
 [kadmin@k8s-master-1 ~]$ sh -c '> /etc/keepalived/keepalived.conf'
 ```
 Now paste the following contents to /etc/keepalived/keepalived.conf file
-```
+```shell
 [kadmin@k8s-master-1 ~]$ vi /etc/keepalived/keepalived.conf
 ```
-```
+```yaml
 ! /etc/keepalived/keepalived.conf
 ! Configuration File for keepalived
 global_defs {
@@ -129,14 +129,14 @@ Save and close the file.
 `Note:` Only two parameters of this file need to be changed for master-2 & 3 nodes. **State** will become **SLAVE** for master 2 and 3, priority will be 254 and 253 respectively.
 
 Configure HAProxy on k8s-master-1 node, edit its configuration file and add the following contents:
-```
+```shell
 [kadmin@k8s-master-1 ~]$ cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg-org
 ```
 Remove all lines after default section and add following lines
-```
+```shell
 [kadmin@k8s-master-1 ~]$ vi /etc/haproxy/haproxy.cfg
 ```
-```
+```yaml
 #---------------------------------------------------------------------
 # apiserver frontend which proxys to the masters
 #---------------------------------------------------------------------
@@ -165,19 +165,19 @@ Save and exit the file
 Now copy theses three files (**check_apiserver.sh , keepalived.conf** and **haproxy.cfg**) from k8s-master-1 to k8s-master-2 & 3
 
 Run the following for loop to scp these files to master 2 and 3
-```
+```shell
 [kadmin@k8s-master-1 ~]$ for f in k8s-master-2 k8s-master-3; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
 ```
 **Note:** Don’t forget to change two parameters in keepalived.conf file that we discuss above for k8s-master-2 & 3
 
 In case firewall is running on master nodes then add the following firewall rules on all three master nodes
-```
+```shell
 firewall-cmd --add-rich-rule='rule protocol value="vrrp" accept' --permanent
 firewall-cmd --permanent --add-port=8443/tcp
 firewall-cmd --reload
 ```
 Now Finally start and enable keepalived and haproxy service on all three master nodes using the following commands :
-```
+```shell
 systemctl enable keepalived --now
 systemctl enable haproxy --now
 ```
@@ -190,12 +190,12 @@ Perfect, above output confirms that VIP has been enabled on k8s-master-1.
 ### Step 3) Disable Swap, set SELinux as permissive and firewall rules for Master and worker nodes
 
 Disable Swap Space on all the nodes including worker nodes, Run the following commands
-```
+```shell
 swapoff -a 
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 ```
 Set SELinux as Permissive on all master and worker nodes, run the following commands,
-```
+```shell
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 ```
@@ -207,7 +207,7 @@ In case firewall is running on master nodes, then allow the following ports in t
 
 Run the following firewall-cmd command on all the master nodes,
 
-```
+```shell
 firewall-cmd --permanent --add-port=6443/tcp
 firewall-cmd --permanent --add-port=2379-2380/tcp
 firewall-cmd --permanent --add-port=10250/tcp
@@ -229,7 +229,7 @@ In case firewall is running on worker nodes, then allow the following ports in t
 ![image](https://user-images.githubusercontent.com/3519706/135464936-9c1a12ce-bf12-4cbe-8c04-c1e953f4957f.png)
 
 Run the following commands on all the worker nodes,
-```
+```shell
 firewall-cmd --permanent --add-port=10250/tcp
 firewall-cmd --permanent --add-port=30000-32767/tcp                                                   
 firewall-cmd --permanent --add-port=179/tcp
@@ -290,25 +290,25 @@ br_netfilter
 EOF
 ```
 **Create the .conf file to load the modules at bootup**
-```
+```shell
 cat <<EOF | tee /etc/modules-load.d/crio.conf
 overlay
 br_netfilter
 EOF
 ```
-```
+```shell
 modprobe overlay
 modprobe br_netfilter
 ```
 ***Set up required sysctl params, these persist across reboots.**
-```
+```shell
 cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 ```
-```
+```shell
 sysctl --system
 ```
 Now, let’s install kubeadm , kubelet and kubectl in the next step
@@ -317,7 +317,7 @@ Now, let’s install kubeadm , kubelet and kubectl in the next step
 
 Install **kubeadm, kubelet** and **kubectl** on all master nodes as well as worker nodes. Before installing these packages first, we must configure Kubernetes repository, run the following command on each master and worker nodes,
 
-```bash
+```shell
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -350,18 +350,18 @@ yum install -y cri-o
 ```
 
 Now run below yum command to install these packages,
-```
+```shell
 yum install -y kubelet-1.22.2-0 kubeadm-1.22.2-0 kubectl-1.22.2-0 --disableexcludes=kubernetes
 ```
 Run following systemctl command to enable kubelet service on all nodes ( master and worker nodes)
-```
+```shell
 systemctl enable kubelet --now
 ```
 Couple of modifications should be made to kubelet service config to make it work fine with CRI-O, hoping that this would be automatically fixed in future releases of Kubernetes. CRI-O uses `systemd` as the cgroup driver. Follow these instructions carefully. Edit this file at `/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf`, and make sure you add the highlighted lines as indicated below.
-```
+```shell
 vi /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
 ```
-```
+```shell
 # Note: This dropin only works with kubeadm and kubelet v1.11+
 [Service]
 Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
@@ -380,16 +380,16 @@ The file should look like this one
 ![image](https://user-images.githubusercontent.com/3519706/136039584-20d5e6f0-54c0-4c4e-9f24-6c5c52f7e510.png)
 
 **Add proxy configuration for container runtime**
-```
+```shell
 vi /etc/sysconfig/crio
 ```
-```
+```shell
 HTTP_PROXY=http://proxy.example.com:80
 HTTPS_PROXY=http://proxy.example.com:80
 NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com
 ```
 **Service enable**
-```
+```shell
 systemctl daemon-reload
 systemctl restart kubelet
 systemctl status kubelet
@@ -398,13 +398,13 @@ systemctl restart crio
 systemctl status crio
 ```
 **Test cri-o**
-```
+```shell
 crictl pull quay.io/oktaysavdi/istioproject
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
 Now move to first master node / control plane and issue the following command,
-```
+```shell
 [kadmin@k8s-master-1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:8443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
@@ -418,17 +418,17 @@ Great, above output confirms that Kubernetes cluster has been initialized succes
 **Note:** It is recommended to copy this output to a text file for future reference.
 
 Run following commands to allow local user to use kubectl command to interact with cluster,
-```
+```shell
 mkdir -p $HOME/.kube
 cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 Now, Let’s deploy pod network (CNI – Container Network Interface), in my case I going to deploy calico addon as pod network, run following kubectl command
-```
+```shell
 [kadmin@k8s-master-1 ~]$ kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 ```
 Once the pod network is deployed successfully, add remaining two master nodes to cluster. Just copy the command for master node to join the cluster from the output and paste it on k8s-master-2 and k8s-master-3, example is shown below
-```
+```shell
 [kadmin@k8s-master-2 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
 Output would be:
@@ -436,7 +436,7 @@ Output would be:
 ![image](https://user-images.githubusercontent.com/3519706/135479876-7acb7021-d731-4f44-b99e-4fa33693139e.png)
 
 Also run the same command on k8s-master-3,
-```
+```shell
 [kadmin@k8s-master-3 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
 Output would be:
@@ -444,7 +444,7 @@ Output would be:
 ![image](https://user-images.githubusercontent.com/3519706/135480002-becaaaac-cd3b-4de2-b6aa-aa9098f8b609.png)
 
 Above output confirms that k8s-master-3 has also joined the cluster successfully. Let’s verify the nodes status from kubectl command, go to master-1 node and execute below command,
-```
+```shell
 [kadmin@k8s-master-1 ~]$ kubectl get nodes
 NAME           STATUS   ROLES    AGE     VERSION
 k8s-master-1   Ready    master   31m     v1.18.6
@@ -456,7 +456,7 @@ erfect, all our three master or control plane nodes are ready and join the clust
 ### Step 7) Join Worker nodes to Kubernetes cluster
 
 To join worker nodes to cluster, copy the command for worker node from output and past it on both worker nodes, example is shown below:
-```
+```shell
 [kadmin@k8s-worker-1 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
 
 [kadmin@k8s-worker-2 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
@@ -466,7 +466,7 @@ Output would be something like below:
 ![image](https://user-images.githubusercontent.com/3519706/135480312-db4a0e0d-cc2c-4eb9-8112-a137f6086fe9.png)
 
 Now head to k8s-master-1 node and run below kubectl command to get status worker nodes,
-```
+```shell
 [kadmin@k8s-master-1 ~]$ kubectl get nodes
 NAME           STATUS   ROLES    AGE     VERSION
 k8s-master-1   Ready    master   43m     v1.18.6
@@ -478,7 +478,7 @@ k8s-worker-2   Ready    <none>   5m22s   v1.18.6
 Above output confirms that both workers have also joined the cluster and are in ready state.
 
 Run below command to verify the status infra pods which are deployed in kube-system namespace.
-```
+```shell
 [kadmin@k8s-master-1 ~]$ kubectl get pods -n kube-system
 ```
 ![image](https://user-images.githubusercontent.com/3519706/135480597-44696521-1a75-4448-b53f-bcc7cc1d8918.png)
@@ -487,7 +487,7 @@ Run below command to verify the status infra pods which are deployed in kube-sys
 
 Let’s try to connect to the cluster from remote machine (CentOS system) using load balancer dns name and port. On the remote machine first, we must install kubectl package. Run below command to set kubernetes repositories.
 
-```
+```shell
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -499,21 +499,21 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 ```
-```
+```shell
 yum install -y  kubectl --disableexcludes=kubernetes
 ```
 Now add following entry in /etc/host file,
-```
+```shell
 192.168.1.45   vip-k8s-master
 ```
 Create kube directory and copy /etc/kubernetes/admin.conf file from k8s-master-1 node to $HOME/.kube/config ,
-```
+```shell
 $ mkdir -p $HOME/.kube
 $ scp root@192.168.1.40:/etc/kubernetes/admin.conf $HOME/.kube/config
 $ chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 Now run “kubectl get nodes” command,
-```
+```shell
 [kadmin@localhost ~]$ kubectl get nodes
 NAME           STATUS   ROLES    AGE    VERSION
 k8s-master-1   Ready    master   3h5m   v1.18.6
@@ -523,7 +523,7 @@ k8s-worker-1   Ready    <none>   148m   v1.18.6
 k8s-worker-2   Ready    <none>   147m   v1.18.6
 ```
 Let’s create a deployment with name nginx-lab with image ‘nginx’ and then expose this deployment as service of type “NodePort”
-```
+```shell
 [kadmin@localhost ~]$ kubectl create deployment nginx-lab --image=nginx
 deployment.apps/nginx-lab created
 
@@ -537,7 +537,7 @@ nginx-lab-5df4577d49-rzv9q   1/1     Running   0          68s
 test-844b65666c-pxpkh        1/1     Running   3          154m
 ```
 Let’s try to scale replicas from 1 to 4, run the following command,
-```
+```shell
 [kadmin@localhost ~]$ kubectl scale deployment nginx-lab --replicas=4
 deployment.apps/nginx-lab scaled
 
@@ -551,13 +551,13 @@ Now expose the deployment as service, run
 service/nginx-lab exposed
 ```
 Get port details and try to access nginx web server using curl,
-```
+```shell
 [kadmin@localhost ~]$ kubectl get svc nginx-lab
 NAME        TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
 nginx-lab   NodePort   10.102.32.29   <none>        80:31766/TCP   60s
 ```
 To access nginx web server we can use any master or worker node IP and port as “31766”
-```
+```shell
 [kadmin@localhost ~]$ curl http://192.168.1.44:31766
 ```
 Output would be something like below:
