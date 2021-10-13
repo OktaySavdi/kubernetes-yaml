@@ -11,7 +11,7 @@ nodeRegistration:
     key: node-role.kubernetes.io/master
   criSocket: /var/run/dockershim.sock
   kubeletExtraArgs:
-    cgroup-driver: "cgroupfs"
+    cgroupDriver: systemd
   ignorePreflightErrors:
     - IsPrivilegedUser
 ---
@@ -169,8 +169,39 @@ udpIdleTimeout: 250ms
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
+nodeStatusUpdateFrequency: "10s"
+failSwapOn: True
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: True
+  x509:
+    clientCAFile: /etc/kubernetes/ssl/ca.crt
+authorization:
+  mode: Webhook
+staticPodPath: /etc/kubernetes/manifests
+cgroupDriver: systemd
+containerLogMaxFiles: 5
+containerLogMaxSize: 10Mi
+maxPods: 110
+address: 10.10.10.10
+readOnlyPort: 0
+healthzPort: 10248
+healthzBindAddress: 127.0.0.1
+kubeletCgroups: /systemd/system.slice
+clusterDomain: savdi-cluster.local
+protectKernelDefaults: true
+rotateCertificates: true
 clusterDNS:
 - 169.254.25.10
+kubeReserved:
+  cpu: 200m
+  memory: 512Mi
+resolvConf: "/etc/resolv.conf"
+eventRecordQPS: 5
+shutdownGracePeriod: 60s
+shutdownGracePeriodCriticalPods: 20s
 ---
 apiVersion: kubescheduler.config.k8s.io/v1beta1
 kind: KubeSchedulerConfiguration
