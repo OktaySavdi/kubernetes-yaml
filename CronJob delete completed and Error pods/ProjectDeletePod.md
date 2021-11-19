@@ -1,3 +1,4 @@
+```yaml
 kind: ServiceAccount
 apiVersion: v1
 metadata:
@@ -42,5 +43,6 @@ spec:
           - name: kubectl-container
             image: bitnami/kubectl:latest
             # I'm using bitnami kubectl, because the suggested kubectl image didn't had the `field-selector` option
-            command: ["sh", "-c", "kubectl get pod -A --no-headers | grep -v kube-system | awk '{if ($4==\"Error\" || $4==\"Completed\") print \"kubectl delete pod \" $2 \" -n \" $1;}' | sh"]
+            command: ["sh", "-c", "kubectl get po | grep -E \"Completed|Error\" | awk '{print $1}' | xargs kubectl delete pod  --grace-period=0 --force"]
           restartPolicy: OnFailure
+```
