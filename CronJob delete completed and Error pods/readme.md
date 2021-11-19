@@ -1,4 +1,4 @@
-
+### Kubernetes automatically remove completed and failed pods
 ```yaml
 # 1. Create a service account
 
