@@ -1,3 +1,4 @@
+
 ```yaml
 # 1. Create a service account
 
@@ -6,9 +7,7 @@ apiVersion: v1
 metadata:
   name: clear-job
   namespace: default
-
 ---
-
 # 2. Create a role
 
 apiVersion: rbac.authorization.k8s.io/v1
@@ -19,9 +18,7 @@ rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["get", "watch", "list", "delete"]
-
 ---
-
 # 3. Attach the role to the service account
 
 apiVersion: rbac.authorization.k8s.io/v1
@@ -36,9 +33,7 @@ subjects:
 - kind: ServiceAccount
   name: clear-job
   namespace: default
-
 ---
-
 # 4. Create a cronjob (with a crontab schedule) using the service account to check for completed jobs
 
 apiVersion: batch/v1beta1
