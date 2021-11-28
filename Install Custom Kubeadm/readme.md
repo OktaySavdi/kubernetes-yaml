@@ -381,12 +381,13 @@ The file should look like this one
 
 **Add proxy configuration for container runtime**
 ```shell
-vi /etc/sysconfig/crio
+/etc/systemd/system/cri-o.service
 ```
 ```shell
-HTTP_PROXY=http://proxy.example.com:80
-HTTPS_PROXY=http://proxy.example.com:80
-NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com
+[Service]
+Environment="HTTP_PROXY=http://proxy.example.com:80"
+Environment="HTTPS_PROXY=http://proxy.example.com:80"
+Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 ```
 **Service enable**
 ```shell
