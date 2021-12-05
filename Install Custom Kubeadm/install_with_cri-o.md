@@ -419,7 +419,7 @@ crictl pull quay.io/oktaysavdi/istioproject
 
 Now move to first master node / control plane and issue the following command,
 ```shell
-[kadmin@k8s-master-1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:8443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
+[kadmin@k8s-master-1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:6443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
 
@@ -443,7 +443,7 @@ Now, Let’s deploy pod network (CNI – Container Network Interface), in my cas
 ```
 Once the pod network is deployed successfully, add remaining two master nodes to cluster. Just copy the command for master node to join the cluster from the output and paste it on k8s-master-2 and k8s-master-3, example is shown below
 ```shell
-[kadmin@k8s-master-2 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
+[kadmin@k8s-master-2 ~]$ kubeadm join vip-k8s-master:6443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
 Output would be:
 
@@ -451,7 +451,7 @@ Output would be:
 
 Also run the same command on k8s-master-3,
 ```shell
-[kadmin@k8s-master-3 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
+[kadmin@k8s-master-3 ~]$ kubeadm join vip-k8s-master:6443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
 Output would be:
 
@@ -471,9 +471,9 @@ erfect, all our three master or control plane nodes are ready and join the clust
 
 To join worker nodes to cluster, copy the command for worker node from output and past it on both worker nodes, example is shown below:
 ```shell
-[kadmin@k8s-worker-1 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
+[kadmin@k8s-worker-1 ~]$ kubeadm join vip-k8s-master:6443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
 
-[kadmin@k8s-worker-2 ~]$ kubeadm join vip-k8s-master:8443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
+[kadmin@k8s-worker-2 ~]$ kubeadm join vip-k8s-master:6443 --token tun848.2hlz8uo37jgy5zqt --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5
 ```
 Output would be something like below:
 
