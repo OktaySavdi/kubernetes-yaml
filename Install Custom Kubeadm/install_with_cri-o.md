@@ -358,28 +358,6 @@ Run following systemctl command to enable kubelet service on all nodes ( master 
 ```shell
 systemctl enable kubelet --now
 ```
-Couple of modifications should be made to kubelet service config to make it work fine with CRI-O, hoping that this would be automatically fixed in future releases of Kubernetes. CRI-O uses `systemd` as the cgroup driver. Follow these instructions carefully. Edit this file at `/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf`, and make sure you add the highlighted lines as indicated below.
-```shell
-vi /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
-```
-```shell
-# Note: This dropin only works with kubeadm and kubelet v1.11+
-[Service]
-Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
-Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
-# This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
-EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
-# This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
-# the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
-Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=systemd"
-EnvironmentFile=-/etc/sysconfig/kubelet
-ExecStart=
-ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS $KUBELET_CGROUP_ARGS
-```
-The file should look like this one
-
-![image](https://user-images.githubusercontent.com/3519706/136039584-20d5e6f0-54c0-4c4e-9f24-6c5c52f7e510.png)
-
 **Service enable**
 ```shell
 systemctl daemon-reload
