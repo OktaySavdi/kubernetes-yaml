@@ -10,6 +10,7 @@ k8s-master-2 – Minimal CentOS 7 – 192.168.1.41 – 2GB RAM, 2vCPU, 40 GB Dis
 k8s-master-3 – Minimal CentOS 7 – 192.168.1.42 – 2GB RAM, 2vCPU, 40 GB Disk
 k8s-worker-1 – Minimal CentOS 7 – 192.168.1.43 – 2GB RAM, 2vCPU, 40 GB Disk
 k8s-worker-2 – Minimal CentOS 7 – 192.168.1.44 – 2GB RAM, 2vCPU, 40 GB Disk
+vip-k8s-master - Minimal CentOS 7 – 192.168.1.45 – 2GB RAM, 2vCPU, 40 GB Disk
 ```
 
 ![image](https://user-images.githubusercontent.com/3519706/135461223-d7c619a1-f17e-4ccd-b199-70dca3f592fb.png)
