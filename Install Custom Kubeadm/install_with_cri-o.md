@@ -43,7 +43,7 @@ echo "192.168.1.45   vip-k8s-master" | tee --append /etc/hosts
 ```
 I have used one additional entry **192.168.1.45   vip-k8s-master** in host file because I will be using this IP and hostname while configuring the haproxy and keepalived on all master nodes. This IP will be used as **kube-apiserver load balancer ip**. All the kube-apiserver request will come to this IP and then the request will be distributed among backend actual kube-apiservers.
 
-Deploy ssh key from LB server to all nodes
+**Deploy ssh key from LB server to all nodes**
 ```shell
 ssh-keygen
 ```
