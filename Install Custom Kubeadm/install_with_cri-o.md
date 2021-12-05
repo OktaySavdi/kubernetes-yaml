@@ -382,8 +382,9 @@ The file should look like this one
 
 **Add proxy configuration for container runtime**
 ```shell
-vi /etc/systemd/system/cri-o.service
+vi /etc/systemd/system/multi-user.target.wants/crio.service
 ```
+![image](https://user-images.githubusercontent.com/3519706/144755405-a1f9f946-9f5e-4fac-bd80-1561b0e21eb8.png)
 ```shell
 [Service]
 Environment="HTTP_PROXY=http://proxy.example.com:80"
