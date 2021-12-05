@@ -167,7 +167,7 @@ Now copy theses three files (**check_apiserver.sh , keepalived.conf** and **hapr
 
 Run the following for loop to scp these files to master 2 and 3
 ```shell
-[kadmin@k8s-master-1 ~]$ for f in k8s-master-2 k8s-master-3; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
+[kadmin@k8s-master-1 ~]$ for f in k8s-master-2 k8s-master-3 lb.example.com; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
 ```
 **Note:** Don’t forget to change two parameters in keepalived.conf file that we discuss above for k8s-master-2 & 3
 
