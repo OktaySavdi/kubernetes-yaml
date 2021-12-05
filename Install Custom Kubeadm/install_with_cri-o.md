@@ -177,7 +177,7 @@ firewall-cmd --add-rich-rule='rule protocol value="vrrp" accept' --permanent
 firewall-cmd --permanent --add-port=8443/tcp
 firewall-cmd --reload
 ```
-Now Finally start and enable keepalived and haproxy service on all three master nodes using the following commands :
+Now Finally start and enable keepalived and haproxy service on all three master nodes and lb.example.com using the following commands :
 ```shell
 systemctl enable keepalived --now
 systemctl enable haproxy --now
