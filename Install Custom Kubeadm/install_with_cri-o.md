@@ -382,7 +382,7 @@ The file should look like this one
 
 **Add proxy configuration for container runtime**
 ```shell
-/etc/systemd/system/cri-o.service
+vi /etc/systemd/system/cri-o.service
 ```
 ```shell
 [Service]
