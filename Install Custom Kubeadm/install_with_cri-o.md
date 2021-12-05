@@ -142,7 +142,7 @@ Remove all lines after default section and add following lines
 # apiserver frontend which proxys to the masters
 #---------------------------------------------------------------------
 frontend apiserver
-    bind 192.168.1.45:8443
+    bind 192.168.1.45:6443
     mode tcp
     option tcplog
     default_backend apiserver
