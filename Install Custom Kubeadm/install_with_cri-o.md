@@ -384,13 +384,15 @@ The file should look like this one
 ```shell
 vi /etc/systemd/system/multi-user.target.wants/crio.service
 ```
-![image](https://user-images.githubusercontent.com/3519706/144755405-a1f9f946-9f5e-4fac-bd80-1561b0e21eb8.png)
 ```shell
 [Service]
 Environment="HTTP_PROXY=http://proxy.example.com:80"
 Environment="HTTPS_PROXY=http://proxy.example.com:80"
 Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 ```
+
+![image](https://user-images.githubusercontent.com/3519706/144755405-a1f9f946-9f5e-4fac-bd80-1561b0e21eb8.png)
+
 **Service enable**
 ```shell
 systemctl daemon-reload
