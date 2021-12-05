@@ -358,6 +358,15 @@ Run following systemctl command to enable kubelet service on all nodes ( master 
 ```shell
 systemctl enable kubelet --now
 ```
+**Service enable**
+```shell
+systemctl daemon-reload
+systemctl restart kubelet
+systemctl status kubelet
+systemctl enable crio
+systemctl restart crio
+systemctl status crio
+```
 Couple of modifications should be made to kubelet service config to make it work fine with CRI-O, hoping that this would be automatically fixed in future releases of Kubernetes. CRI-O uses `systemd` as the cgroup driver. Follow these instructions carefully. Edit this file at `/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf`, and make sure you add the highlighted lines as indicated below.
 ```shell
 vi /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
@@ -393,15 +402,6 @@ Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 
 ![image](https://user-images.githubusercontent.com/3519706/144755405-a1f9f946-9f5e-4fac-bd80-1561b0e21eb8.png)
 
-**Service enable**
-```shell
-systemctl daemon-reload
-systemctl restart kubelet
-systemctl status kubelet
-systemctl enable crio
-systemctl restart crio
-systemctl status crio
-```
 **Test cri-o**
 ```shell
 crictl pull quay.io/oktaysavdi/istioproject
