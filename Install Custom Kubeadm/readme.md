@@ -369,9 +369,14 @@ ctr image pull quay.io/oktaysavdi/istioproject
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
+Create config file for customization - [Example](kubeadm%20config%20print%20init-defaults%20--component-configs=KubeletConfiguration)
+```shell
+kubeadm config print init-defaults
+kubeadm config print init-defaults --component-configs=KubeletConfiguration
+```
 Now move to first master node / control plane and issue the following command,
 ```shell
-[kadmin@k8s-master1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:6443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
+kubeadm init --config=config.yaml --upload-certs
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
 
