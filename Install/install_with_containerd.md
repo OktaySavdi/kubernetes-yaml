@@ -5,11 +5,11 @@ When we setup Kubernetes (k8s) cluster on-premises for production environment th
 For the demonstration, I have used five CentOS 7 systems with following details:
 
 ```shell
-k8s-master-1 – Minimal CentOS 7 – 192.168.1.40 – 2GB RAM, 2vCPU, 40 GB Disk
-k8s-master-2 – Minimal CentOS 7 – 192.168.1.41 – 2GB RAM, 2vCPU, 40 GB Disk
-k8s-master-3 – Minimal CentOS 7 – 192.168.1.42 – 2GB RAM, 2vCPU, 40 GB Disk
-k8s-worker-1 – Minimal CentOS 7 – 192.168.1.43 – 2GB RAM, 2vCPU, 40 GB Disk
-k8s-worker-2 – Minimal CentOS 7 – 192.168.1.44 – 2GB RAM, 2vCPU, 40 GB Disk
+k8s-master1 – Minimal CentOS 7 – 192.168.1.40 – 2GB RAM, 2vCPU, 40 GB Disk
+k8s-master2 – Minimal CentOS 7 – 192.168.1.41 – 2GB RAM, 2vCPU, 40 GB Disk
+k8s-master3 – Minimal CentOS 7 – 192.168.1.42 – 2GB RAM, 2vCPU, 40 GB Disk
+k8s-worker1 – Minimal CentOS 7 – 192.168.1.43 – 2GB RAM, 2vCPU, 40 GB Disk
+k8s-worker2 – Minimal CentOS 7 – 192.168.1.44 – 2GB RAM, 2vCPU, 40 GB Disk
 vip-k8s-master - Minimal CentOS 7 – 192.168.1.45 – 2GB RAM, 2vCPU, 40 GB Disk
 ```
 
@@ -28,17 +28,17 @@ Let’s jump into the installation and configuration
 
 ### Step 1) Set Hostname and add entries in /etc/hosts file
 ```
-hostnamectl set-hostname "k8s-master-1"
+hostnamectl set-hostname "k8s-master1"
 exec bash
 ```
 Similarly, run above command on remaining nodes and set their respective hostname. 
 Once hostname is set on all master and worker nodes then add the following entries in **/etc/hosts** file on all the nodes.
 ```shell
-echo "192.168.1.40   k8s-master-1" | tee --append /etc/hosts    
-echo "192.168.1.41   k8s-master-2" | tee --append /etc/hosts
-echo "192.168.1.42   k8s-master-3" | tee --append /etc/hosts
-echo "192.168.1.43   k8s-worker-1" | tee --append /etc/hosts
-echo "192.168.1.44   k8s-worker-2" | tee --append /etc/hosts
+echo "192.168.1.40   k8s-master1" | tee --append /etc/hosts    
+echo "192.168.1.41   k8s-master2" | tee --append /etc/hosts
+echo "192.168.1.42   k8s-master3" | tee --append /etc/hosts
+echo "192.168.1.43   k8s-worker1" | tee --append /etc/hosts
+echo "192.168.1.44   k8s-worker2" | tee --append /etc/hosts
 echo "192.168.1.45   vip-k8s-master" | tee --append /etc/hosts
 ```
 I have used one additional entry **192.168.1.45   vip-k8s-master** in host file because I will be using this IP and hostname while configuring the haproxy and keepalived on all master nodes. This IP will be used as **kube-apiserver load balancer ip**. All the kube-apiserver request will come to this IP and then the request will be distributed among backend actual kube-apiservers.
@@ -62,9 +62,9 @@ Install keepalived and haproxy on each master node using the following yum comma
 ```shell
 yum install haproxy keepalived -y
 ```
-Configure Keepalived on k8s-master-1 first, create check_apiserver.sh script will the following content,
+Configure Keepalived on k8s-master1 first, create check_apiserver.sh script will the following content,
 ```shell
-[kadmin@k8s-master-1 ~]$ vi /etc/keepalived/check_apiserver.sh
+[kadmin@k8s-master1 ~]$ vi /etc/keepalived/check_apiserver.sh
 ```
 ```shell
 #!/bin/sh
@@ -129,7 +129,7 @@ Save and close the file.
 
 `Note:` Only two parameters of this file need to be changed for master-2 & 3 nodes. **State** will become **SLAVE** for master 2 and 3, priority will be 254 and 253 respectively.
 
-Configure HAProxy on k8s-master-1 node, edit its configuration file and add the following contents:
+Configure HAProxy on k8s-master1 node, edit its configuration file and add the following contents:
 ```shell
 [kadmin@k8s-master1 ~]$ cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg-org
 ```
@@ -155,21 +155,21 @@ backend apiserver
     mode tcp
     option ssl-hello-chk
     balance     roundrobin
-        server k8s-master-1 192.168.1.40:6443 check
-        server k8s-master-2 192.168.1.41:6443 check
-        server k8s-master-3 192.168.1.42:6443 check
+        server k8s-master1 192.168.1.40:6443 check
+        server k8s-master2 192.168.1.41:6443 check
+        server k8s-master3 192.168.1.42:6443 check
 ```
 Save and exit the file
 
 ![image](https://user-images.githubusercontent.com/3519706/135464022-62ed3929-049c-40f7-bc00-51c1dc6cb2ed.png)
 
-Now copy theses three files (**check_apiserver.sh , keepalived.conf** and **haproxy.cfg**) from k8s-master-1 to k8s-master-2 & 3
+Now copy theses three files (**check_apiserver.sh , keepalived.conf** and **haproxy.cfg**) from k8s-master1 to k8s-master2 & 3
 
 Run the following for loop to scp these files to master 2 and 3
 ```shell
-[kadmin@k8s-master1 ~]$ for f in k8s-master-2 k8s-master-3 vip-k8s-master; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
+[kadmin@k8s-master1 ~]$ for f in k8s-master2 k8s-master3 vip-k8s-master; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
 ```
-**Note:** Don’t forget to change two parameters in keepalived.conf file that we discuss above for k8s-master-2 & 3
+**Note:** Don’t forget to change two parameters in keepalived.conf file that we discuss above for k8s-master2 & 3
 
 In case firewall is running on master nodes then add the following firewall rules on all three master nodes
 ```shell
@@ -182,11 +182,11 @@ Now Finally start and enable keepalived and haproxy service on all three master 
 systemctl enable keepalived --now
 systemctl enable haproxy --now
 ```
-Once these services are started successfully, verify whether VIP (virtual IP) is enabled on k8s-master-1 node because we have marked k8s-master-1 as MASTER node in keepalived configuration file.
+Once these services are started successfully, verify whether VIP (virtual IP) is enabled on k8s-master1 node because we have marked k8s-master1 as MASTER node in keepalived configuration file.
 
 ![image](https://user-images.githubusercontent.com/3519706/135464464-bd82f203-3e01-4f10-af62-7deecd1ff458.png)
 
-Perfect, above output confirms that VIP has been enabled on k8s-master-1.
+Perfect, above output confirms that VIP has been enabled on k8s-master1.
 
 ### Step 3) Disable Swap, set SELinux as permissive and firewall rules for Master and worker nodes
 
@@ -393,7 +393,7 @@ Now, Let’s deploy pod network (CNI – Container Network Interface), in my cas
 ```shell
 [kadmin@k8s-master1 ~]$ kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 ```
-Once the pod network is deployed successfully, add remaining two master nodes to cluster. Just copy the command for master node to join the cluster from the output and paste it on k8s-master-2 and k8s-master-3, example is shown below
+Once the pod network is deployed successfully, add remaining two master nodes to cluster. Just copy the command for master node to join the cluster from the output and paste it on k8s-master2 and k8s-master3, example is shown below
 ```shell
 [kadmin@k8s-master2 ~]$ kubeadm join vip-k8s-master:6443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
@@ -401,7 +401,7 @@ Output would be:
 
 ![image](https://user-images.githubusercontent.com/3519706/135479876-7acb7021-d731-4f44-b99e-4fa33693139e.png)
 
-Also run the same command on k8s-master-3,
+Also run the same command on k8s-master3,
 ```shell
 [kadmin@k8s-master3 ~]$ kubeadm join vip-k8s-master:6443 --token tun848.2hlz8uo37jgy5zqt  --discovery-token-ca-cert-hash sha256:d035f143d4bea38d54a3d827729954ab4b1d9620631ee330b8f3fbc70324abc5 --control-plane --certificate-key a0b31bb346e8d819558f8204d940782e497892ec9d3d74f08d1c0376dc3d3ef4
 ```
@@ -409,9 +409,9 @@ Output would be:
 
 ![image](https://user-images.githubusercontent.com/3519706/135480002-becaaaac-cd3b-4de2-b6aa-aa9098f8b609.png)
 
-Above output confirms that k8s-master-3 has also joined the cluster successfully. Let’s verify the nodes status from kubectl command, go to master-1 node and execute below command,
+Above output confirms that k8s-master3 has also joined the cluster successfully. Let’s verify the nodes status from kubectl command, go to master-1 node and execute below command,
 ```shell
-[kadmin@k8s-master-1 ~]$ kubectl get nodes
+[kadmin@k8s-master1 ~]$ kubectl get nodes
 NAME           STATUS   ROLES    AGE     VERSION
 k8s-master1   Ready    master   31m     v1.18.6
 k8s-master2   Ready    master   10m     v1.18.6
@@ -431,9 +431,9 @@ Output would be something like below:
 
 ![image](https://user-images.githubusercontent.com/3519706/135480312-db4a0e0d-cc2c-4eb9-8112-a137f6086fe9.png)
 
-Now head to k8s-master-1 node and run below kubectl command to get status worker nodes,
+Now head to k8s-master1 node and run below kubectl command to get status worker nodes,
 ```shell
-[kadmin@k8s-master-1 ~]$ kubectl get nodes
+[kadmin@k8s-master1 ~]$ kubectl get nodes
 NAME           STATUS   ROLES    AGE     VERSION
 k8s-master1   Ready    master   43m     v1.18.6
 k8s-master2   Ready    master   21m     v1.18.6
@@ -472,7 +472,7 @@ Now add following entry in /etc/host file,
 ```shell
 192.168.1.45   vip-k8s-master
 ```
-Create kube directory and copy /etc/kubernetes/admin.conf file from k8s-master-1 node to $HOME/.kube/config ,
+Create kube directory and copy /etc/kubernetes/admin.conf file from k8s-master1 node to $HOME/.kube/config ,
 ```shell
 $ mkdir -p $HOME/.kube
 $ scp root@192.168.1.40:/etc/kubernetes/admin.conf $HOME/.kube/config
