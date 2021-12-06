@@ -3,7 +3,6 @@ kind: InitConfiguration
 localAPIEndpoint:
   advertiseAddress: 10.10.10.10
   bindPort: 6443
-certificateKey: da61a4c499adfc6c45ded4fe7e5af29dafcc6dc0447bb19bd5a9fc5e19bd8fd2
 nodeRegistration:
   name: k8s-master1
   taints:
@@ -67,12 +66,20 @@ apiServer:
     event-ttl: 1h0m0s
   extraVolumes:
   - name: audit-policy
-    hostPath: /etc/kubernetes/audit-policy
-    mountPath: /etc/kubernetes/audit-policy
+    hostPath: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+    mountPath: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+    readOnly: true
+    pathType: "File"
   - name: audit-logs
-    hostPath: /var/log/kubernetes/audit
-    mountPath: /var/log/audit
+    hostPath: /var/log/kubernetes/audit/kube-apiserver-audit.log
+    mountPath: /var/log/audit/kube-apiserver-audit.log
     readOnly: false
+    pathType: "FileOrCreate"
+  - name: secrets-encryption
+    hostPath: /etc/kubernetes/secret/secrets_encryption.yaml
+    mountPath: /etc/kubernetes/secret/secrets_encryption.yaml
+    readOnly: true
+    pathType: "File"
   - name: etc-pki-tls
     hostPath: /etc/pki/tls
     mountPath: /etc/pki/tls
@@ -181,7 +188,6 @@ authentication:
 authorization:
   mode: Webhook
 staticPodPath: /etc/kubernetes/manifests
-cgroupDriver: systemd
 containerLogMaxFiles: 5
 containerLogMaxSize: 10Mi
 maxPods: 110
@@ -189,9 +195,8 @@ address: 10.10.10.10
 readOnlyPort: 0
 healthzPort: 10248
 healthzBindAddress: 127.0.0.1
-kubeletCgroups: /systemd/system.slice
 clusterDomain: savdi-cluster.local
-protectKernelDefaults: true
+protectKernelDefaults: false
 rotateCertificates: true
 clusterDNS:
 - 169.254.25.10
@@ -202,11 +207,3 @@ resolvConf: "/etc/resolv.conf"
 eventRecordQPS: 5
 shutdownGracePeriod: 60s
 shutdownGracePeriodCriticalPods: 20s
----
-apiVersion: kubescheduler.config.k8s.io/v1beta1
-kind: KubeSchedulerConfiguration
-clientConnection:
-  kubeconfig: "/etc/kubernetes/scheduler.conf"
-leaderElection:
-  leaseDuration: 15s
-  renewDeadline: 10s
