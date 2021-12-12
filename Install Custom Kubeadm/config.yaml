@@ -51,7 +51,6 @@ apiServer:
     audit-log-maxbackup: "1"
     audit-log-maxsize: "100"
     event-ttl: 1h0m0s
-  timeoutForControlPlane: 5m0s
 controllerManager:
   extraArgs:
     node-monitor-grace-period: 40s
