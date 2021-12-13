@@ -122,7 +122,6 @@ staticPodPath: /etc/kubernetes/manifests
 containerLogMaxFiles: 5
 containerLogMaxSize: 10Mi
 maxPods: 110
-address: 192.168.1.40
 readOnlyPort: 0
 healthzPort: 10248
 healthzBindAddress: 127.0.0.1
