@@ -335,7 +335,7 @@ EOF
 ```
 Now run below yum command to install these packages,
 ```shell
-yum install -y kubelet-1.22.4-0 kubeadm-1.22.4-0 kubectl-1.22.4-0 --disableexcludes=kubernetes
+yum install -y kubelet-1.23.0-0 kubeadm-1.23.0-0 kubectl-1.23.0-0 --disableexcludes=kubernetes
 ```
 Run following systemctl command to enable kubelet service on all nodes ( master and worker nodes)
 ```shell
