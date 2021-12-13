@@ -1,6 +1,14 @@
-
-
 # Kubernetes CLI Commands
+
+**kubeadm**
+```ruby
+kubeadm token generate
+kubeadm token create <generated-token> --print-join-command --ttl=0
+
+kubeadm init phase upload-certs --upload-certs
+
+kubeadm join 10.10.10.10:6443 --token < token > --discovery-token-ca-cert-hash sha256:< hash> --control-plane --certificate-key < upload_certs>
+```
 
 **CLI Example**
 ```ruby
