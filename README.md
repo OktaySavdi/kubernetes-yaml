@@ -9,6 +9,11 @@ kubeadm init phase upload-certs --upload-certs
 
 kubeadm join 10.10.10.10:6443 --token < token > --discovery-token-ca-cert-hash sha256:< hash> --control-plane --certificate-key < upload_certs>
 ```
+**Call DNS**
+```ruby
+<service-name>.<namespace>.svc.cluster.local:<service-port>
+<pod-ip-address>.<namespace>.pod.cluster.local:<service-port>
+```
 
 **CLI Example**
 ```ruby
