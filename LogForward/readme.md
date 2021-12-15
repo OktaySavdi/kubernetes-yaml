@@ -187,4 +187,6 @@ https://raw.githubusercontent.com/elastic/beats/7.16/deploy/kubernetes/filebeat-
 https://raw.githubusercontent.com/elastic/beats/7.16/deploy/kubernetes/metricbeat-kubernetes.yaml
 
 **If the log is not coming, link the relevant directory**
+```
 ln -s /var/lib/docker/containers /var/log/containers
+```
