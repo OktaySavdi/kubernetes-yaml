@@ -50,28 +50,4 @@ spec:
       containers:
         - name: nginx
           image: nginx
-
-#Blue/ Green (or Red / Black) deployments
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rolling-update
-spec:
-  template:
-    metadata:
-      labels:
-        app: nginx
-        version: "02"
-  selector:
-    matchLabels:
-      app: frontent
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      containers:
-        - name: nginx
-          image: nginx
 ```
