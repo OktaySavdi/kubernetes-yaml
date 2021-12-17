@@ -1,10 +1,10 @@
-## Install nginx ingress controller on kubernetes 
+### Kubernetes install ingress controller
 
-Nginx ingress controller install : [URL](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/)
+Nginx ingress controller install [URL](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/)
 
-**Taint infra node**
+Taint worker node
 ```
-kubectl taint node <Infra Node Name> node-role.kubernetes.io/infra=:NoSchedule
+kubectl taint node <Infra Node> node-role.kubernetes.io/infra=:NoSchedule
 ```
 ## Prerequisites
 
@@ -63,14 +63,20 @@ In this section, we create resources common for most of the Ingress Controller i
     ```
     
 3.  Create an IngressClass resource:
+
+if you want to set automatic ingress class, change ingress-class.yaml file like below
+````
+vi common/ingress-class.yaml    
+````
+![image](https://user-images.githubusercontent.com/3519706/146514391-236cc11b-0910-465c-9372-373ded8b2f4e.png)
     
-    ```fallback
-    kubectl apply -f common/ingress-class.yaml    
-    ```
+```fallback
+kubectl apply -f common/ingress-class.yaml    
+```
     
-    If you would like to set the Ingress Controller as the default one, uncomment the annotation  `ingressclass.kubernetes.io/is-default-class`. With this annotation set to true all the new Ingresses without an ingressClassName field specified will be assigned this IngressClass.
+ If you would like to set the Ingress Controller as the default one, uncomment the annotation  `ingressclass.kubernetes.io/is-default-class`. With this annotation set to true all the new Ingresses without an ingressClassName field specified will be assigned this IngressClass.
     
-    **Note**: The Ingress Controller will fail to start without an IngressClass resource.
+ **Note**: The Ingress Controller will fail to start without an IngressClass resource.
     
 
 ### Create Custom Resources
@@ -115,6 +121,7 @@ If you would like to use the App Protect module, create the following additional
 
 We include two options for deploying the Ingress controller:
 
+-   _Deployment_. Use a Deployment if you plan to dynamically change the number of Ingress controller replicas.
 -   _DaemonSet_. Use a DaemonSet for deploying the Ingress controller on every node or a subset of nodes.
 
 > Before creating a Deployment or Daemonset resource, make sure to update the  [command-line arguments](https://docs.nginx.com/nginx-ingress-controller/configuration/global-configuration/command-line-arguments)  of the Ingress Controller container in the corresponding manifest file according to your requirements.
@@ -147,5 +154,5 @@ kubectl apply -f daemon-set/nginx-ingress.yaml
 Run the following command to make sure that the Ingress controller pods are running:
 
 ```fallback
-kubectl get pods --namespace=nginx-ingress
+$ kubectl get pods --namespace=nginx-ingress
 ```
