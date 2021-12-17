@@ -1,9 +1,21 @@
 # Kubernetes persistence volume claim example
 
 ```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tcpdump-pvc
+  namespace: openshift4-debug
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  volumeMode: Filesystem
+  volumeName: tcpdump
 ---
 # Dynamic provision
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
