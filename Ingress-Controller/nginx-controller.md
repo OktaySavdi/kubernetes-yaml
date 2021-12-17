@@ -156,3 +156,24 @@ Run the following command to make sure that the Ingress controller pods are runn
 ```fallback
 kubectl get pods --namespace=nginx-ingress
 ```
+create a example ingress yaml file
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: istio-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: "istio-10-10-10-10.nip.io"
+    http:
+      paths:
+      - path: /istio
+        pathType: Prefix
+        backend:
+          service:
+            name: web
+            port:
+              number: 8080
+```
