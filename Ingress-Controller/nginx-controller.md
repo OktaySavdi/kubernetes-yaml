@@ -1,10 +1,10 @@
 ### Kubernetes install ingress controller
 
-Nginx ingress controller install [URL](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/)
+Nginx ingress controller install :  [URL](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/)
 
-Taint worker node
+**Taint worker node**
 ```
-kubectl taint node <Infra Node> node-role.kubernetes.io/infra=:NoSchedule
+kubectl taint node <Infra Node Name> node-role.kubernetes.io/infra=:NoSchedule
 ```
 ## Prerequisites
 
