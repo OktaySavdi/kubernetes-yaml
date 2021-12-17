@@ -6,6 +6,26 @@ kind: PersistentVolume
 metadata:
   name: mysqlvol
 spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 5Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: mysqlvol-pvc
+    namespace: my-namespace
+  nfs:
+    path: /my_files_dir/dump
+    server: myfileserver.domain.local
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysqlvol
+spec:
   storageClassName: manual
   capacity:
     storage: 10Gi #Size of the volume
