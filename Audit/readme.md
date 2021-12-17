@@ -91,7 +91,7 @@ volumeMounts:
   - mountPath: /etc/kubernetes/audit-policy.yaml
     name: audit
     readOnly: true
-  - mountPath: /var/log/audit.log
+  - mountPath: /var/log/k8s-audit.log
     name: audit-log
     readOnly: false
 ```
