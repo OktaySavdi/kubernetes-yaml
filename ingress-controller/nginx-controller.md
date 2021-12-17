@@ -147,5 +147,5 @@ kubectl apply -f daemon-set/nginx-ingress.yaml
 Run the following command to make sure that the Ingress controller pods are running:
 
 ```fallback
-$ kubectl get pods --namespace=nginx-ingress
+kubectl get pods --namespace=nginx-ingress
 ```
