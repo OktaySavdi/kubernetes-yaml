@@ -58,7 +58,7 @@
 1.  Edit the  `kube-apiserver`  manifest:
     
     ```bash
-    sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
+    vi /etc/kubernetes/manifests/kube-apiserver.yaml
     ```
     ```bash
     /var/log/kubernetes
@@ -118,5 +118,5 @@ and finally configure the hostPath:
 8.  View the audit logs:
     
     ```
-    sudo tail -f /var/log/kubernetes/k8s-audit.log
+    tail -f /var/log/kubernetes/k8s-audit.log
     ```
