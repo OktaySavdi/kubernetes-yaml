@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mysqlvol
+  name: tcpdump
 spec:
   accessModes:
   - ReadWriteMany
@@ -13,7 +13,7 @@ spec:
   claimRef:
     apiVersion: v1
     kind: PersistentVolumeClaim
-    name: mysqlvol-pvc
+    name: tcpdump-pvc
     namespace: my-namespace
   nfs:
     path: /my_files_dir/dump
