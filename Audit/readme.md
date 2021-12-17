@@ -4,7 +4,7 @@
 1.  Edit the  `audit-policy`  rules file:
     
     ```bash
-    sudo vi /etc/kubernetes/audit-policy.yaml
+    vi /etc/kubernetes/audit-policy.yaml
     ```
     
 2.  Paste in the following YAML rule to log request and response bodies for namespace changes:
