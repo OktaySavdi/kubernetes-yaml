@@ -141,10 +141,18 @@ KUBECONFIG=~/.kube/config:~/.kube/kubconfig2
 
 kubectl config view
 
-kubectl config get-contexts                          # display list of contexts 
-kubectl config current-context                       # display the current-context
-kubectl config use-context my-cluster-name           # set the default context to my-cluster-name
+kubectl config get-contexts                           # display list of contexts 
+kubectl config current-context                        # display the current-context
+kubectl config use-context my-cluster-name            # set the default context to my-cluster-name
 kubectl config set-context --current --namespace=MyNS # permanently save the namespace for all subsequent kubectl commands in that context.
+kubectl config use-context <cluster>                  # Set the default context to <cluster>
+kubectl config set-credentials <username> [options]   # Sets a user entry in kubeconfig
+kubectl config view -o jsonpath='{.users[?(@.name == "admin")].user.password}' # Get the password for the "admin" user
+kubectl config set-credentials <user> --client-key=~/.kube/admin.key # Sets a user with a client key
+kubectl config set-credentials --username=<username> --password=<password> # Sets a user with basic auth
+kubectl config set-credentials <user> --client-certificate=<path/to/cert> --embed-certs=true # Sets a user with client certificate
+kubectl config --kubeconfig=<config/path> use-context <cluster> # Set a context utilizing a specific config file
+kubectl config set-context gce --user=cluster-admin --namespace=foo && kubectl config use-context gce # Set a context utilizing a specific username and namespace
 
 # Get commands with basic output
 kubectl get services                          # List all services in the namespace
