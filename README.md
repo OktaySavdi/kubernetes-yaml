@@ -294,6 +294,9 @@ kubectl get --all-namespaces svc -o json | jq -r '.items[] | [.metadata.name,([.
 
 # Pod subnets that are used in the cluster
 kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}' | tr " " "\n
+
+# get imagepullpolicy
+kubectl get deploy --no-headers -A -o jsonpath='{range .items[*]}''NS:{.metadata.namespace}{"\t"}APP:{.metadata.name}{"\t"}UnavailableReplicas:{.status.unavailableReplicas}{"\t"}''image:{.spec.template.spec.containers[*].image}{"\t"}Policy:{.spec.template.spec.containers[*].imagePullPolicy}{"\n"}'
 ```
 **Cluster**
 ```ruby
