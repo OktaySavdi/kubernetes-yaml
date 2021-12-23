@@ -1,7 +1,5 @@
 Repo : [URL](https://github.com/prometheus-operator/kube-prometheus)
 
-Repo : [URL](https://github.com/prometheus-operator/kube-prometheus)
-
 ### Step 1: Clone  **kube-prometheus**  project
 
 Use  _git_  command to clone  _kube-prometheus_  project to your local system:
@@ -215,5 +213,8 @@ Default Logins are:
 Username: admin
 Password: admin
 ```
-
 You’re required to change the password on first login:
+
+![image](https://user-images.githubusercontent.com/3519706/147210163-14780b89-d5c2-4876-a07d-c183057972c4.png)
+
+![image](https://user-images.githubusercontent.com/3519706/147210234-824352bc-e19e-477b-92c9-26c0f6685cde.png)
