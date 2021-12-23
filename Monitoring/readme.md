@@ -218,3 +218,32 @@ You’re required to change the password on first login:
 ![image](https://user-images.githubusercontent.com/3519706/147210163-14780b89-d5c2-4876-a07d-c183057972c4.png)
 
 ![image](https://user-images.githubusercontent.com/3519706/147210234-824352bc-e19e-477b-92c9-26c0f6685cde.png)
+
+### How to create kubernetes prometheus alert rules
+
+We can modify the configuration file  `prometheus-rules.yaml`  present in prometheus-operator repo to re-create the configmap.
+
+```
+kubectl get cm -n monitoring | grep rulefile
+prometheus-k8s-rulefiles-0                  1         40m
+```
+I have added the following section at end of the configuration file. Custom Rule - awesome-prometheus-alerts.grep.to/rules.html#kubernetes
+```yaml
+- name: KubernetesNodeReady
+  rules:
+  - alert: KubernetesNodeReady
+    expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      summary: Kubernetes Node ready (instance {{ $labels.instance }})
+      description: "Node {{ $labels.node }} has been unready for a long time\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+```
+Re-create the configmap
+```
+kubectl delete -f prometheus-rules.yaml
+kubectl create -f prometheus-rules.yaml
+prometheusrule "prometheus-k8s-rules" created
+```
+
