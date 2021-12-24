@@ -94,7 +94,7 @@ Note: If you want to change the PROVISIONER_NAME above from `k8s-sigs.io/nfs-sub
 
 To disable leader election, define an env variable named ENABLE_LEADER_ELECTION and set its value to false.
 
-**Step 5: Deploying your storage class**
+**Step 4: Deploying your storage class**
 
 **_Parameters:_**
 
@@ -117,7 +117,7 @@ parameters:
   onDelete: delete
 ```
 
-**Step 6: Finally, test your environment!**
+**Step 5: Finally, test your environment!**
 
 Now we'll test your NFS subdir external provisioner.
 
@@ -135,7 +135,7 @@ kubectl delete -f deploy/test-pod.yaml -f deploy/test-claim.yaml
 
 Now check the folder has been deleted.
 
-**Step 4: Deploying your own PersistentVolumeClaims**
+**Step 6: Deploying your own PersistentVolumeClaims**
 
 To deploy your own PVC, make sure that you have the correct `storageClassName` as indicated by your `deploy/class.yaml` file.
 
