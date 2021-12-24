@@ -36,10 +36,6 @@ To setup the provisioner you will download a set of YAML files, edit them to add
 
 Get all of the files in the [deploy](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/tree/master/deploy) directory of this repository. These instructions assume that you have cloned the [kubernetes-sigs/nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/) repository and have a bash-shell open in the root directory.
 
-**Step 3: Setup authorization**
-
-If your cluster has RBAC enabled or you are running OpenShift you must authorize the provisioner. If you are in a namespace/project other than "default" edit `deploy/rbac.yaml`.
-
 **Kubernetes:**
 
 ```sh
@@ -50,8 +46,7 @@ sed -i'' "s/namespace:.*/namespace: $NAMESPACE/g" ./deploy/rbac.yaml ./deploy/de
 kubectl create -f deploy/rbac.yaml
 ```
 
-
-**Step 4: Configure the NFS subdir external provisioner**
+**Step 3: Configure the NFS subdir external provisioner**
 
 If you would like to use a custom built nfs-subdir-external-provisioner image, you must edit the provisioner's deployment file to specify the correct location of your `nfs-client-provisioner` container image.
 
@@ -129,7 +124,7 @@ Now we'll test your NFS subdir external provisioner.
 Deploy:
 
 ```sh
-$ kubectl create -f deploy/test-claim.yaml -f deploy/test-pod.yaml
+kubectl create -f deploy/test-claim.yaml -f deploy/test-pod.yaml
 ```
 
 Now check your NFS Server for the file `SUCCESS`.
@@ -140,7 +135,7 @@ kubectl delete -f deploy/test-pod.yaml -f deploy/test-claim.yaml
 
 Now check the folder has been deleted.
 
-**Step 7: Deploying your own PersistentVolumeClaims**
+**Step 4: Deploying your own PersistentVolumeClaims**
 
 To deploy your own PVC, make sure that you have the correct `storageClassName` as indicated by your `deploy/class.yaml` file.
 
