@@ -349,15 +349,22 @@ curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://downlo
 curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
 yum install -y cri-o
 ```
+**Install crictl**
 
-Install crictl
 crictl can be downloaded from cri-tools release page:
-
 ```shell
 VERSION="v1.22.0"
 wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
 sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
 rm -f crictl-$VERSION-linux-amd64.tar.gz
+```
+**cgroup driver**
+
+CRI-O uses the systemd cgroup driver per default. To switch to the cgroupfs cgroup driver, either edit /etc/crio/crio.conf
+```
+[crio.runtime]
+conmon_cgroup = "pod"
+cgroup_manager = "cgroupfs"
 ```
 Now run below yum command to install these packages,
 ```shell
