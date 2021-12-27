@@ -360,7 +360,7 @@ rm -f crictl-$VERSION-linux-amd64.tar.gz
 ```
 **cgroup driver**
 
-CRI-O uses the systemd cgroup driver per default. To switch to the cgroupfs cgroup driver, either edit /etc/crio/crio.conf
+CRI-O uses the systemd cgroup driver per default. To switch to the cgroupfs cgroup driver, either edit `/etc/crio/crio.conf`
 ```
 [crio.runtime]
 conmon_cgroup = "pod"
