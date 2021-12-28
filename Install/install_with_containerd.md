@@ -249,10 +249,10 @@ Install Container (Container Run Time) on all the master nodes and worker nodes,
 Install and configure prerequisites:
 
 Add proxy for centos server
-```
+```shell
 vi /etc/profile.d/proxy.sh
 ```
-```
+```shell
 export http_proxy=http://myproxy.com:80
 export https_proxy=$http_proxy
 export HTTP_PROXY=$http_proxy
