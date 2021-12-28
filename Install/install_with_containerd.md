@@ -259,6 +259,7 @@ export HTTPS_PROXY=$http_proxy
 export no_proxy=localhost,.nip.io,.mydomain.com,.mydomain2.com,,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 export NO_PROXY=$no_proxy
 ```
+Load the necessary modules for Containerd
 ```shell
 modprobe overlay
 modprobe br_netfilter
@@ -273,6 +274,7 @@ EOF
 
 sysctl --system
 ```
+install containerd
 ````shell
 dnf remove podman buildah runc -y
 dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
