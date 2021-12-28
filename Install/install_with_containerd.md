@@ -251,8 +251,7 @@ Install and configure prerequisites:
 Add proxy for centos server
 ```shell
 vi /etc/profile.d/proxy.sh
-```
-```shell
+
 export http_proxy=http://myproxy.com:80
 export https_proxy=$http_proxy
 export HTTP_PROXY=$http_proxy
@@ -260,6 +259,7 @@ export HTTPS_PROXY=$http_proxy
 export no_proxy=localhost,.nip.io,.mydomain.com,.mydomain2.com,,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 export NO_PROXY=$no_proxy
 ```
+```shell
 modprobe overlay
 modprobe br_netfilter
 ```
