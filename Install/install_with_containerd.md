@@ -365,7 +365,7 @@ systemctl status containerd
 ```
 #test containerd
 ```shell
-ctr image pull quay.io/oktaysavdi/istioproject
+ctr image pull quay.io/oktaysavdi/istioproject:latest
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
