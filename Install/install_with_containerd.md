@@ -248,46 +248,18 @@ Install Container (Container Run Time) on all the master nodes and worker nodes,
 
 Install and configure prerequisites:
 
-Add centos repo
-```shell
-[extras]
-name=CentOS-$releasever - Extras
-mirrorlist=http://mirrorlist.centos.org/?release=7&arch=
-$basearch&repo=extras
-baseurl=http://mirror.centos.org/centos/7/extras/$basearch/
-enabled=1
-gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-priority=1
-
-[base]
-name=CentOS-$releasever - Base
-mirrorlist=http://mirrorlist.centos.org/?release=7&arch=
-$basearch&repo=os
-baseurl=http://mirror.centos.org/centos/7/os/$basearch/
-enabled=1
-gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-5
-priority=1
-
-#released updates
-[updates]
-name=CentOS-$releasever - Updates
-mirrorlist=http://mirrorlist.centos.org/?release=7&arch=
-$basearch&repo=updates
-baseurl=http://mirror.centos.org/centos/7/updates/$basearch/
-enabled=1
-gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-priority=1
+Add proxy for centos server
 ```
-Load the necessary modules for Containerd:
-```shell
-cat <<EOF | tee /etc/modules-load.d/containerd.conf
-overlay
-br_netfilter
-EOF
-
+vi /etc/profile.d/proxy.sh
+```
+```
+export http_proxy=http://myproxy.com:80
+export https_proxy=$http_proxy
+export HTTP_PROXY=$http_proxy
+export HTTPS_PROXY=$http_proxy
+export no_proxy=localhost,.nip.io,.mydomain.com,.mydomain2.com,,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+export NO_PROXY=$no_proxy
+```
 modprobe overlay
 modprobe br_netfilter
 ```
