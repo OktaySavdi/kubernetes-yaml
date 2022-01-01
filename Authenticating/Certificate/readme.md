@@ -7,6 +7,22 @@ ca.crt: openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
 admin.key: openssl genrsa -out admin.key 2048
 admin.csr: openssl req -new -key admin.key -subj "/CN=kube-admin" -out admin.csr
 admin.crt: openssl x509 -req -in admin.csr -CA ca.crt -CAkey ca.key -out admin.crt
+
+or
+# Root CA
+openssl genrsa -out ca.key 2048 > /dev/null 2>&1
+openssl req -x509 -new -nodes -key ca.key -days 3650 -out ca.crt -subj "/CN=mycluster" > /dev/null 2>&1
+
+# Typha server
+openssl genrsa -out typha-server.key 2048 > /dev/null 2>&1
+openssl req -new -key typha-server.key -out typha-server.csr -subj "/CN=typha-server" > /dev/null 2>&1
+openssl x509 -req -in typha-server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out typha-server.crt -days 3650 -extensions ssl_client > /dev/null 2>&1
+
+# Typha client
+openssl genrsa -out typha-client.key 2048 > /dev/null 2>&1
+openssl req -new -key typha-client.key -out typha-client.csr -subj "/CN=typha-client" -config ${CONFIG} > /dev/null 2>&1
+openssl x509 -req -in typha-client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out typha-client.crt -days 3650 -extensions ssl_client > /dev/null 2>&1
+
 openssl x509 -in /etc/kubernetes/pki/ca.crt -text -noout
 ````
 Exmple
