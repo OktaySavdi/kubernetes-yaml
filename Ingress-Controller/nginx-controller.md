@@ -50,7 +50,7 @@ In this section, we create resources common for most of the Ingress Controller i
 1.  Create a secret with a TLS certificate and a key for the default server in NGINX:
     
     ```fallback
-    $ kubectl apply -f common/default-server-secret.yaml
+    kubectl apply -f common/default-server-secret.yaml
     
     ```
     
