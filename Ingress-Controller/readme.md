@@ -82,7 +82,7 @@ helm install ingress-controller nginx-stable/nginx-ingress \
 Run the following command to make sure that the Ingress controller pods are running:
 
 ```fallback
-kubectl get pods --namespace=nginx-ingress
+kubectl get pods --namespace=ingress-controller
 ```
 create a example ingress yaml file
 ```yaml
