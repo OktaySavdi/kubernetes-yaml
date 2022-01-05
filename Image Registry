@@ -1,0 +1,42 @@
+```bash
+$ sudo docker login https://image-registry.8-mega.local -u registry
+Password: 
+WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+
+$ sudo docker pull busybox:latest
+latest: Pulling from library/busybox
+3cb635b06aa2: Pull complete 
+Digest: sha256:b5cfd4befc119a590ca1a81d6bb0fa1fb19f1fbebd0397f25fae164abe1e8a6a
+Status: Downloaded newer image for busybox:latest
+docker.io/library/busybox:latest
+
+$ sudo docker images| grep busybox
+busybox                                          latest           ffe9d497c324   3 weeks ago    1.24MB
+
+$ sudo docker tag busybox:latest image-registry.8-mega.local/utils/busybox:latest  
+
+$ sudo docker images| grep busybox                                               
+image-registry.8-mega.local/utils/busybox        latest           ffe9d497c324   3 weeks ago    1.24MB
+busybox                                          latest           ffe9d497c324   3 weeks ago    1.24MB
+
+$ sudo docker push image-registry.8-mega.local/utils/busybox:latest              
+The push refers to repository [image-registry.8-mega.local/utils/busybox]
+64cac9eaf0da: Pushed 
+latest: digest: sha256:50e44504ea4f19f141118a8a8868e6c5bb9856efa33f2183f5ccea7ac62aacc9 size: 527
+```
+
+The output is:
+
+```bash
+$ curl https://registry:Passw0rd@image-registry.8-mega.local/v2/_catalog   
+{"repositories":["utils/busybox"]}
+
+$ curl https://registry:Passw0rd@image-registry.8-mega.local/v2/utils/busybox/tags/list
+{"name":"utils/busybox","tags":["latest"]}
+```
+
+Reference: [URL](https://8-mega.notion.site/Install-Image-Registry-dddb1226cc464fad836546500f24ad1d) 
