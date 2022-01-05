@@ -78,6 +78,162 @@ A Kubernetes `ConfigMap` will be create to store environment variables required 
 
 ![Ekran Resmi 2022-01-05 18 55 18](https://user-images.githubusercontent.com/3519706/148247937-8d4c946e-da7a-4d86-ba05-65753e96f948.png)
 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-registry-plain
+  namespace: kube-infra
+  labels:
+    category: infrastructure
+    application: image-registry-plain
+    resiliency: single
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      category: infrastructure
+      application: image-registry-plain
+      resiliency: single
+  template:
+    metadata:
+      labels:
+        category: infrastructure
+        application: image-registry-plain
+        resiliency: single
+    spec:
+      containers:
+        - name: image-registry-plain
+          image: registry:2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: registry
+              containerPort: 5000
+          env:
+           - name: REGISTRY_HTTP_ADDR
+             valueFrom:
+                configMapKeyRef:
+                   name: image-registry-plain
+                   key: httpAddr
+           - name: REGISTRY_AUTH
+             valueFrom:
+                configMapKeyRef:
+                   name: image-registry-plain
+                   key: authType
+           - name: REGISTRY_AUTH_HTPASSWD_REALM
+             valueFrom:
+                configMapKeyRef:
+                   name: image-registry-plain
+                   key: authHtpasswdRealm
+           - name: REGISTRY_AUTH_HTPASSWD_PATH
+             valueFrom:
+                configMapKeyRef:
+                   name: image-registry-plain
+                   key: authHtpasswdPath
+          volumeMounts:
+            - name: image-registry-storage
+              mountPath: /var/lib/registry
+            - name: image-registry-user
+              mountPath: /auth
+      volumes:
+        - name: image-registry-storage
+          emptyDir: {}
+        - name: image-registry-user
+          secret:
+            secretName: image-registry-user
+
+```
+The output is
+
+```bash
+$ kubectl -n kube-infra get pods
+NAME                                    READY   STATUS    RESTARTS   AGE
+image-registry-plain-5f866d8d99-m8h44   1/1     Running   1          15h
+
+```
+
+## Expose image-registry
+
+Now that we have the image registry pod up and running we need to expose it for internal and external requests to be able to connect. There are several ways to do this. It is possible to define a `NodePort` service and use it for both internal and external use cases. Instead a `ClusterIP` Service and an `Ingress` will be defined. ClusterIP will expose the application withing the kubernetes cluster, and ingress will allow external requests to reach to our image-registry.
+
+### ClusterIP Service
+
+Follwiong yaml will be used to define the service.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-registry-plain
+  namespace: kube-infra
+  labels:
+    category: infrastructure
+    application: image-registry-plain
+    resiliency: single
+spec:
+  type: ClusterIP
+  ports:
+    - name: registry
+      port: 5000
+      targetPort: 5000
+  selector:
+    category: infrastructure
+    application: image-registry-plain
+
+```
+
+The output is:
+
+```bash
+$ kubectl -n kube-infra get svc -o wide
+NAME             TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE   SELECTOR
+image-registry-plain ClusterIP 10.32.0.191 <none> 5000/TCP 15h   application=image-registry-plain,category=infrastructure
+
+$ kubectl -n kube-infra get ep -o wide
+NAME             ENDPOINTS       AGE
+image-registry-plain   10.2.2.30:5000  15h
+
+```
+Since service and endpoints are in place. Any pod within this cluster can connect to image-registry.
+
+### Registry ingress
+
+Note that pods are managed by `kubelet` and kubelet is running on worker nodes not in any other pod. As a result it will not be possible to deploy pods by using internal image registry untill defining an ingress for kubelet and containerd running on worker nodes to able to reach.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: image-registry
+  namespace: kube-infra
+  labels:
+     category: infrastructure
+     application: image-registry
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  rules:
+    - host: image-registry.8-mega.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name:  image-registry-plain
+                port:
+                  number: 5000
+  tls:
+          - secretName: image-registry-certs
+
+```
+The yaml file given above creates a new secure ingress.
+
+### Verify Image Registry
+
+To test the newly deployed registry a new image (busybox) will be pulled from DockerHub, tagged and then pushed into.
+
 ```bash
 $ sudo docker login <https://image-registry.8-mega.local> -u registry
 Password: 
@@ -120,3 +276,5 @@ $ curl <https://registry:Passw0rd@image-registry.8-mega.local/v2/utils/busybox/t
 {"name":"utils/busybox","tags":["latest"]}
 
 ```
+
+Refarance: [URL](https://8-mega.notion.site/Install-Image-Registry-dddb1226cc464fad836546500f24ad1d)
