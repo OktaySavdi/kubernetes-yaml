@@ -277,4 +277,4 @@ $ curl <https://registry:Passw0rd@image-registry.8-mega.local/v2/utils/busybox/t
 
 ```
 
-Refarance: [URL](https://8-mega.notion.site/Install-Image-Registry-dddb1226cc464fad836546500f24ad1d)
+Referance: [URL](https://8-mega.notion.site/Install-Image-Registry-dddb1226cc464fad836546500f24ad1d)
