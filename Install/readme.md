@@ -301,11 +301,13 @@ EOF
 
 sysctl --system
 ```
-````shell
-yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
-````
-download containerd rpm files in https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
-
+install containerd
+```
+dnf remove podman buildah runc -y
+dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+yum install docker-ce yum-utils device-mapper-persistent-data lvm2 bash-completion -y
+if you want you can download containerd rpm files in https://download.docker.com/linux/centos/8/x86_64/stable/Packages/
+```
 Configure containerd:
 ```shell
 mkdir -p /etc/containerd
