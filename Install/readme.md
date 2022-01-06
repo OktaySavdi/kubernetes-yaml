@@ -305,14 +305,24 @@ sysctl --system
 yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
 ````
 download containerd rpm files in https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
-````shell
-wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.9-3.1.el7.x86_64.rpm
-rpm -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
-````
+
 Configure containerd:
 ```shell
 mkdir -p /etc/containerd
 containerd config default | tee /etc/containerd/config.toml
+systemctl restart containerd
+```
+**Using the systemd cgroup driver**
+
+To use the systemd cgroup driver in /etc/containerd/config.toml with runc, set
+```
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+  ...
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    SystemdCgroup = true
+```
+If you apply this change make sure to restart containerd again:
+```
 systemctl restart containerd
 ```
 Now, let’s install kubeadm , kubelet and kubectl in the next step
