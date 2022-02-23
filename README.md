@@ -177,8 +177,7 @@ kubectl get pv --sort-by=.spec.capacity.storage
 kubectl set env deployment/nginx-app  DOMAIN=cluster
 
 # Get the version label of all pods with label app=cassandra
-kubectl get pods --selector=app=cassandra -o \
-  jsonpath='{.items[*].metadata.labels.version}'
+kubectl get pods --selector=app=cassandra -o jsonpath='{.items[*].metadata.labels.version}'
 
 # Get all worker nodes (use a selector to exclude results that have a label
 # named 'node-role.kubernetes.io/master')
@@ -197,7 +196,7 @@ kubectl patch pod valid-pod -p '{"spec":{"containers":[{"name":"kubernetes-serve
 kubectl patch pod valid-pod --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":"new image"}]'
 
 # Disable a deployment livenessProbe using a json patch with positional arrays
-kubectl patch deployment valid-deployment  --type json   -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"}]'
+kubectl patch deployment valid-deployment  --type json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"}]'
 
 # change pod image version
 kubectl patch dc nginx --patch='{"spec":{"template":{"spec":{"containers":[{"name": "nginx", "image":"nginx:1.19.1"}]}}}}'
