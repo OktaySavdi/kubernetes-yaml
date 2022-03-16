@@ -31,3 +31,19 @@ containers:
               export SCRIPT_API_URL="api.ocp.mycluster.local:6443";
               curl -k --header "Authorization: Bearer ${SCRIPT_SA_TOKEN}" --insecure --data '{"spec":{"activeDeadlineSeconds":1}}' -XPATCH   -H "Accept: application/json, */*" -H "Content-Type: application/strategic-merge-patch+json" https://${SCRIPT_API_URL}/api/v1/namespaces/${SCRIPT_NAMESPACE}/pods/${SCRIPT_POD_NAME}
 ```
+```yaml
+   lifecycle:
+     preStop:
+       exec:
+         command:
+         - "/bin/sh"
+         - "-c"
+         - > 
+           APISERVER=https://kubernetes.default.svc;
+           SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount;
+           NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace);
+           TOKEN=$(cat ${SERVICEACCOUNT}/token);
+           CACERT=${SERVICEACCOUNT}/ca.crt;
+           POD=$(printenv HOSTNAME);
+           curl  -X DELETE --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$POD;
+```
