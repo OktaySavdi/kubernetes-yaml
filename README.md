@@ -2,6 +2,11 @@
 
 # Kubernetes CLI Commands
 
+**Convert**
+```ruby
+kubectl convert -f <old-file> --output-version <new-api>
+```
+
 **kubeadm**
 ```ruby
 kubeadm token generate
