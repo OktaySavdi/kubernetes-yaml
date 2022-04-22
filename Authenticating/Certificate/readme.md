@@ -141,5 +141,5 @@ kubectl config set-credentials oktay --client-certificate=oktay.crt --client-key
 ````
 **10-List Kubermetes users** 
 ````
-kubectl config get-context
+kubectl config get-contexts
 ````
