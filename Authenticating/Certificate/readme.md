@@ -55,7 +55,7 @@ cat oktay.csr | base64 | tr -d "\n"
 ````
 ````yaml
 cat <<EOF | kubectl apply -f -
-apiVersion: certificates.k8s.io/v1beta1
+apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
   name: oktay
