@@ -1,5 +1,5 @@
 # Give Access To Your Cluster With A Client Certificate
-````ruby
+````
 ca.key: openssl genrsa -out ca.key 2048
 ca.csr: openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr
 ca.crt: openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
@@ -26,30 +26,30 @@ openssl x509 -req -in typha-client.csr -CA ca.crt -CAkey ca.key -CAcreateserial 
 openssl x509 -in /etc/kubernetes/pki/ca.crt -text -noout
 ````
 Exmple
-````ruby
+````
 openssl genrsa -out oktay.key 2048
 openssl req -new -key oktay.key -subj "/CN=oktay" -out oktay.csr
 ````
-````ruby
+````
 openssl x509 -in ./oktay.crt -noout -text
 ````
-````ruby
+````
 curl https://kube-api-server:6443/api/v1/pods --key admin.key --cert admin.crt --cacert ca.crt
 ````
 ------------------
 
 **1- Create a Normal User with X.509 Client Certificate**
-````ruby
+````
 openssl req -newkey rsa:2048 -nodes -keyout oktay.key -out oktay.csr -subj "/CN=oktay"
 ````
-````ruby
+````
 openssl x509 -req -in oktay.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out oktay.crt -days 1000
 ````
 **2-Create a CertificateSigningRequest and submit it to a Kubernetes Cluster via kubectl. Below is a script to generate the CertificateSigningRequest.**
-````ruby
+````
 cat oktay.csr | base64
 ````
-````ruby
+````yaml
 cat <<EOF | kubectl apply -f -
 apiVersion: certificates.k8s.io/v1beta1
 kind: CertificateSigningRequest
@@ -67,20 +67,20 @@ spec:
 EOF
 ````
 **3-Get the list of CSRs:**
-````ruby
+````
 kubectl get csr
 ````
 Approve the CSR:
-````ruby
+````
 kubectl certificate approve oktay 
 ````
 Retrieve the certificate from the CSR:
-````ruby
+````
 kubectl get csr oktay -o yaml
 ````
 
 **4-This is a sample script to create a Role for this new user:**
-````ruby
+````yaml
 cat <<EOF | kubectl apply -f -
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -97,7 +97,7 @@ rules:
 EOF
 ````
 **5-This is a sample command to create a RoleBinding for this new user:**
-````ruby
+````yaml
 cat <<EOF | kubectl apply -f -
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -115,7 +115,7 @@ roleRef:
 EOF
 ````
 **6-Check Permissions**
-````ruby
+````
 kubectl auth can-i list pods -n development
 kubectl auth can-i list pods -n development --as oktay
 kubectl auth can-i list nodes --as oktay
@@ -123,18 +123,18 @@ kubectl auth can-i list deployments --as system:serviceaccount:ns1:pipeline -n n
 kubectl auth can-i update deployments --as system:serviceaccount:ns1:pipeline -n ns1
 ````
 **7-Then, you need to add the context:**
-````ruby
+````
 kubectl config set-context oktay --cluster=kubernetes --user=oktay
 ````
 **8-To test it, change the context to oktay:**
-````ruby
+````
 kubectl config use-context oktay
 ````
 **9-We have to set the credentials in the kubeconfig file to get the Kube cluster access for that run a below command**
-````ruby
+````
 kubectl config set-credentials oktay --client-certificate=oktay.crt --client-key=oktay.key --embed-certs
 ````
 **10-List Kubermetes users** 
-````ruby
+````
 kubectl config get-context
 ````
