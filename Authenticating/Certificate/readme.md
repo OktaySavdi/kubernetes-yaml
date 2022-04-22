@@ -130,7 +130,7 @@ kubectl config use-context oktay
 ````
 **9-We have to set the credentials in the kubeconfig file to get the Kube cluster access for that run a below command**
 ````ruby
-kubectl config set-credentials oktay --client-certificate=oktay.crt --client-key=oktay.key
+kubectl config set-credentials oktay --client-certificate=oktay.crt --client-key=oktay.key --embed-certs
 ````
 **10-List Kubermetes users** 
 ````ruby
