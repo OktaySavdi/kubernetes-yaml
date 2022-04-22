@@ -119,6 +119,8 @@ EOF
 kubectl auth can-i list pods -n development
 kubectl auth can-i list pods -n development --as oktay
 kubectl auth can-i list nodes --as oktay
+kubectl auth can-i list deployments --as system:serviceaccount:ns1:pipeline -n ns1
+kubectl auth can-i update deployments --as system:serviceaccount:ns1:pipeline -n ns1
 ````
 **7-Then, you need to add the context:**
 ````ruby
