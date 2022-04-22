@@ -7,7 +7,10 @@ ca.crt: openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
 admin.key: openssl genrsa -out admin.key 2048
 admin.csr: openssl req -new -key admin.key -subj "/CN=kube-admin" -out admin.csr
 admin.crt: openssl x509 -req -in admin.csr -CA ca.crt -CAkey ca.key -out admin.crt
-
+or
+openssl genrsa -out oktay.key 2048
+openssl req -new -key oktay.key -out oktay.csr
+openssl x509 -req -in oktay.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out oktay.crt -days 500
 or
 # Root CA
 openssl genrsa -out ca.key 2048 > /dev/null 2>&1
