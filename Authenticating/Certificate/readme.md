@@ -47,7 +47,8 @@ openssl x509 -req -in oktay.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kuber
 ````
 **2-Create a CertificateSigningRequest and submit it to a Kubernetes Cluster via kubectl. Below is a script to generate the CertificateSigningRequest.**
 ````
-cat oktay.csr | base64
+cat oktay.csr | base64 -w 0
+cat oktay.csr | base64 | tr -d "\n"
 ````
 ````yaml
 cat <<EOF | kubectl apply -f -
