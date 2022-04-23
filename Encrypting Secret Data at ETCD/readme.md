@@ -40,6 +40,22 @@ spec:
      - kube-apiserver
      - --authorization-mode=Node,RBAC
      [...]
+...
+    - --encryption-provider-config=/etc/kubernetes/etcd/ec.yaml
+...
+    volumeMounts:
+    - mountPath: /etc/kubernetes/etcd
+      name: etcd
+      readOnly: true
+...
+  hostNetwork: true
+  priorityClassName: system-cluster-critical
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/etcd
+      type: DirectoryOrCreate
+    name: etcd
+...
 ```
   
   And add add the following line somewhere under  `- kube-apiserver`.
