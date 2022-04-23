@@ -9,8 +9,11 @@ Your output will look something similar to the following example. Keep note of t
 ```
 WxaW1k22mu3M/WYMIWYVOkAOrOTJ17+Q5+McAIqK3bM=
 ```
-3.  Create a new file called **/etc/kubernetes/pki/secrets.yml**
-4.  Add the following to its contents.  
+3.  Create a new file called 
+```
+/etc/kubernetes/pki/secrets.yml
+```
+5.  Add the following to its contents.  
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
 kind: EncryptionConfiguration
