@@ -4,7 +4,7 @@
 1.  Edit the  `admission-control.conf`  file:
     
     ```bash
-    sudo vi /etc/kubernetes/admission-control/admission-control.conf
+    vi /etc/kubernetes/admission-control/admission-control.conf
     ```
     
 2.  Paste in the ImagePolicyWebhook:
@@ -32,9 +32,9 @@
 
 1.  Edit the kubeconfig file:
     
-    ```bash
-    sudo vi /etc/kubernetes/admission-control/imagepolicy_backend.kubeconfig
-    ```
+```bash
+vi /etc/kubernetes/admission-control/imagepolicy_backend.json
+```
 ```yaml
 apiVersion: v1
 kind: Config
@@ -78,6 +78,7 @@ users:
     
     ```
     --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+    - --admission-control-config-file=/etc/kubernetes/admission-control/imagepolicy_backend.json
     ```
     
 3.  To save and exit the file, press  **Escape**, type  `:wq`, and hit  **Enter**.
