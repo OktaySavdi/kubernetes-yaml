@@ -104,7 +104,7 @@ users:
     kubectl create -f good-pod.yml
     ```
 ```yaml
-cat <<EOF kubectl create -f -
+cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -125,7 +125,7 @@ EOF
     ```
 
 ```yaml
-cat <<EOF kubectl create -f -
+cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: Pod
 metadata:
