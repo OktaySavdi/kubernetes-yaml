@@ -104,6 +104,7 @@ users:
     kubectl create -f good-pod.yml
     ```
 ```yaml
+cat <<EOF kubectl create -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -113,6 +114,7 @@ spec:
   containers:
   - name: busybox
     image: busybox:1.33.1
+EOF
 ```
     The Pod should be successfully created.
     
@@ -123,6 +125,7 @@ spec:
     ```
 
 ```yaml
+cat <<EOF kubectl create -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -131,6 +134,7 @@ spec:
   containers:
   - name: nginx
     image: nginx:1.14.2
+EOF
 ```
     
     Pod creation should fail and return an error due to image vulnerabilities.
