@@ -4,7 +4,7 @@
 1.  Edit the  `admission-control.conf`  file:
     
     ```bash
-    vi /etc/kubernetes/policywebhook/admission_config.json
+    vi /etc/kubernetes/policywebhook/admission_config.conf
     ```
     
 2.  Paste in the ImagePolicyWebhook:
@@ -41,8 +41,8 @@ kind: Config
 clusters:
 - name: trivy-k8s-webhook
   cluster:
-    certificate-authority: /etc/kubernetes/policywebhook/imagepolicywebhook-ca.crt
-    server: "https://acg.trivy.k8s.webhook:8090/scan"
+    certificate-authority: /etc/kubernetes/policywebhook/imagepolicywebhook-ca.crt # CA for verifying the remote service.
+    server: "https://acg.trivy.k8s.webhook:8090/scan"                              # URL of remote service to query. Must use 'https'.
 contexts:
 - name: trivy-k8s-webhook
   context:
@@ -53,8 +53,8 @@ preferences: {}
 users:
 - name: api-server
   user:
-    client-certificate: /etc/kubernetes/policywebhook/api-server-client.crt
-    client-key: /etc/kubernetes/policywebhook/api-server-client.key
+    client-certificate: /etc/kubernetes/policywebhook/api-server-client.crt      # cert for the webhook admission controller to use
+    client-key: /etc/kubernetes/policywebhook/api-server-client.key              # key matching the cert
 ```
     
 2.  Set the location of the backend image scanning service:
@@ -82,7 +82,7 @@ users:
       - command:
         - kube-apiserver
         - --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
-        - --admission-control-config-file=/etc/kubernetes/policywebhook/admission_config.json
+        - --admission-control-config-file=/etc/kubernetes/policywebhook/admission_config.conf
     ---
     volumeMounts:
     - mountPath: /etc/kubernetes/policywebhook
