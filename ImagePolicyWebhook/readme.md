@@ -4,7 +4,7 @@
 1.  Edit the  `admission-control.conf`  file:
     
     ```bash
-    vi /etc/kubernetes/admission-control/admission-control.conf
+    vi /etc/kubernetes/policywebhook/admission_config.json
     ```
     
 2.  Paste in the ImagePolicyWebhook:
@@ -16,7 +16,7 @@
     - name: ImagePolicyWebhook
       configuration:
         imagePolicy:
-          kubeConfigFile: /etc/kubernetes/admission-control/imagepolicy_backend.kubeconfig
+          kubeConfigFile: /etc/kubernetes/policywebhook/kubeconf
           allowTTL: 50
           denyTTL: 50
           retryBackoff: 500
@@ -33,7 +33,7 @@
 1.  Edit the kubeconfig file:
     
 ```bash
-vi /etc/kubernetes/admission-control/imagepolicy_backend.json
+vi /etc/kubernetes/policywebhook/kubeconf
 ```
 ```yaml
 apiVersion: v1
@@ -41,7 +41,7 @@ kind: Config
 clusters:
 - name: trivy-k8s-webhook
   cluster:
-    certificate-authority: /etc/kubernetes/admission-control/imagepolicywebhook-ca.crt
+    certificate-authority: /etc/kubernetes/policywebhook/imagepolicywebhook-ca.crt
     server: "https://acg.trivy.k8s.webhook:8090/scan"
 contexts:
 - name: trivy-k8s-webhook
@@ -53,8 +53,8 @@ preferences: {}
 users:
 - name: api-server
   user:
-    client-certificate: /etc/kubernetes/admission-control/api-server-client.crt
-    client-key: /etc/kubernetes/admission-control/api-server-client.key
+    client-certificate: /etc/kubernetes/policywebhook/api-server-client.crt
+    client-key: /etc/kubernetes/policywebhook/api-server-client.key
 ```
     
 2.  Set the location of the backend image scanning service:
@@ -71,14 +71,29 @@ users:
 1.  Edit the kube-apiserver manifest:
     
     ```bash
-    sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
+    vi /etc/kubernetes/manifests/kube-apiserver.yaml
     ```
     
-2.  In the  `command`  container, scroll down to  `--enable-admission-plugins`  and add  `ImagePolicyWebhook`:
+2.  In the  `command`  container, scroll down to  `--enable-admission-plugins`  and add  `ImagePolicyWebhook` neccesary configure:
     
     ```
-    --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
-    - --admission-control-config-file=/etc/kubernetes/admission-control/imagepolicy_backend.json
+    spec:
+      containers:
+      - command:
+        - kube-apiserver
+        - --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+        - --admission-control-config-file=/etc/kubernetes/policywebhook/admission_config.json
+    ---
+    volumeMounts:
+    - mountPath: /etc/kubernetes/policywebhook
+      name: policywebhook
+      readyOnly: true
+    ---
+    volumes:
+    - hostPath:
+        path: /etc/kubernetes/policywebhook
+        type: DirectoryOrCreate
+      name: policywebhook
     ```
     
 3.  To save and exit the file, press  **Escape**, type  `:wq`, and hit  **Enter**.
