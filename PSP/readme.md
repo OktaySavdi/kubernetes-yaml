@@ -1,4 +1,9 @@
 Exclude namespace on pod security policy
+```
+kubectl create clusterrolebinding psprb --clusterrole=non-priv-role --user=jaya_vkl@yahoo.co.in
+kubectl create clusterrolebinding psprbgrp --clusterrole=non-priv-role --group=system:authenticated
+kubectl create clusterrolebinding psprbsa --clusterrole=non-priv-role --serviceaccount=default:default
+```
 ```yaml
 cat <<EOF | kubectl create -f -
 ---
