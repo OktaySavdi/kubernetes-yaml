@@ -127,6 +127,11 @@ kubectl rollout undo deployment example  --to-revision=3
 ```
 # Cheat Sheet
 ```ruby
+# Use Api command
+kubectl api-resources
+kubectl get apiservice
+kubectl delete apiservce <service-name> 
+
 # Use the --v flag to set a verbosity level.
 kubectl get pods --v=8
 
