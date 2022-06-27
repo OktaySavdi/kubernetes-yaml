@@ -36,7 +36,7 @@ subjects:
 ---
 # 4. Create a cronjob (with a crontab schedule) using the service account to check for completed jobs
 
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: jobs-cleanup
