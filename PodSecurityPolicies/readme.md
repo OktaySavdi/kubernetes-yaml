@@ -104,6 +104,7 @@ spec:
 2.  Add in the YAML for the cluster role:
     
     ```yaml
+    kubectl create -f- <<EOF
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
@@ -114,6 +115,7 @@ spec:
       verbs:     ['use']
       resourceNames:
       - psp-no-privileged
+    EOF
     ```
     
 3.  Save and exit the file by pressing the Escape key and entering:
@@ -137,6 +139,7 @@ spec:
 6.  Add in the YAML for the role binding:
     
     ```yaml
+    kubectl create -f- <<EOF
     apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
@@ -150,6 +153,7 @@ spec:
     - kind: ServiceAccount
       name: auth-sa
       namespace: auth
+    EOF
     ```
     
 7.  Save and exit the file by pressing the Escape key and entering:
@@ -170,6 +174,7 @@ spec:
     cat non-privileged-pod.yml
     ```
 ```yaml
+kubectl create -f- <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
@@ -180,6 +185,7 @@ spec:
   - name: background-monitor
     image: radial/busyboxplus:curl
     command: ['sh', '-c', 'while true; do echo "Running..."; sleep 5; done']
+EOF
 ```    
 10.  Create the  `non-privileged-pod.yml`  pod:
     
@@ -190,6 +196,7 @@ spec:
     
     cat privileged-pod.yml
 ```yaml
+kubectl create -f- <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
@@ -202,6 +209,7 @@ spec:
     command: ['sh', '-c', 'while true; do echo "Running..."; sleep 5; done']
     securityContext:
       privileged: true
+EOF
 ```
     
 12.  Create the  `privileged-pod.yml`:
