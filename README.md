@@ -132,6 +132,8 @@ kubectl api-resources
 kubectl get apiservice
 kubectl delete apiservce <service-name> 
 
+kubectl get --raw='/readyz?verbose'
+
 # Use the --v flag to set a verbosity level.
 kubectl get pods --v=8
 
