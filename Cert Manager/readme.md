@@ -21,6 +21,24 @@ kubectl get po -n cert-manager
 ```
 kubectl create -n cert-manager secret tls root-secret --cert labs/04/certs/ca/root-ca.crt --key labs/04/certs/ca/root-ca.key
 ```
+or
+```
+cat ca.crt | base64 -w 0
+cat ca.key | base64 -w 0
+```
+```yaml
+cat << EOF | kubectl create -f -
+apiVersion: v1
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlGcXpDQ0E1T2dBd0lCQWdJVVplaVVFVTZVadsfsdfwsdfoijd
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQ0KTUlJSktBSUJBQUtDQWdFQXZ5MHBmR3RnUFNnWTZ4S1dic3F
+kind: Secret
+metadata:
+  name: root-secret
+  namespace: cert-manager
+type: kubernetes.io/tls
+EOF
+```
 ### Let's configure a ClusterIssuer to use our CA:
 ```yaml
 cat << EOF | kubectl create -f -
