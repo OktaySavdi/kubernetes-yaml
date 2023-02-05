@@ -40,9 +40,9 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: myapp-cert
-  namespace: example
+  namespace: example # ingress must be where it is installed
 spec:
-  secretName: oktay-secret
+  secretName: oktay-secret # must be ingress secret name
   duration: 2160h # 90d
   renewBefore: 360h # 15d
   privateKey:
@@ -113,7 +113,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    cert-manager.io/issuer: "ca-issuer"
+    cert-manager.io/issuer: "ca-issuer" # Added for automatic certificate generation
   name: myapp-ingress
 spec:
   tls:
