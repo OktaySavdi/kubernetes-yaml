@@ -39,7 +39,7 @@ vault read auth/kubernetes/config
 ```
 create secret
 ```
-vault kv put internal/database/config username="oktay" password="savdi"
+vault kv put secret/helloworld username=oktay password=savdi
 ```
 Deploy application
 ```yaml
