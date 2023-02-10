@@ -226,6 +226,6 @@ Next, lets launch our example application and create the service account. We can
 kubectl exec -it app-789d677db4-9fd5m -c app -- ls -l /vault/secrets
 kubectl exec -it app-789d677db4-9fd5m -c app -- cat /vault/secrets/helloworld
 ```
-
-
+resource1 - https://developer.hashicorp.com/vault/tutorials/kubernetes/kubernetes-azure-aks#install-the-vault-helm-chart
+resource2 - https://www.hashicorp.com/blog/injecting-vault-secrets-into-kubernetes-pods-via-a-sidecar
 
