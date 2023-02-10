@@ -135,3 +135,97 @@ The Unseal status shows  `1/3 keys provided`.
 10.  Copy the  `root_token`  and enter its value in the  **Token**  field. Click  **Sign In**.
 
 ![image](https://user-images.githubusercontent.com/3519706/218096290-8804426f-e518-4d3d-aba9-43d8e788d2fe.png)
+
+### Deploy first password in the cluster
+
+login vault pod
+```
+kubectl exec -it vault-0 -n vault -- sh
+```
+login with root token
+```
+vault login 
+```
+Enable secret engine
+```
+vault secrets enable -path=internal kv-v2 
+```
+Next, connect to Vault and configure a policy named “internal-app” for the demo. This is a very non-restrictive policy, and in a production setting, you would typically want to lock this down more, but it serves as an example while you play around with this feature.
+
+```
+vault policy write internal-app - <<EOF
+path "internal/data/database/config"{
+capabilities = ["read"]
+}
+EOF
+```
+Next, we want to configure the  [Vault Kubernetes Auth](https://www.vaultproject.io/docs/auth/kubernetes.html)  method and attach our newly recreated policy to our applications service account (we’ll create the application in just a minute).
+
+```
+vault auth enable kubernetes
+
+vault write auth/kubernetes/config \
+   token-reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+   kubernetes_host=https://${KUBERNETES_PORT_443_TCP_ADDR}:443 \
+   kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+vault write auth/kubernetes/role/internal-app \
+   bound_service_account_names=internal-app \
+   bound_service_account_namespaces=demo\
+   policies=internal-app \
+   ttl=1h
+```
+Finally, let's create an example username and password in Vault using the KV Secrets Engine. The end goal here, is for this username and password to be injecting into our target pod's filesystem, which knows nothing about Vault.
+```
+vault kv put internal/database/config username="oktay" password="savdi"
+```
+
+Here is an example `app.yaml` configuration file for running a demo application. This spawns a simple web service container useful for our testing purposes. We are also defining a Service Account which we can then tie back to the Vault Policy we created earlier. This allows you to specify each secret an application is allowed to access.
+```yaml
+cat <<EOF|kubectl apply -f-
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app
+  namespace: demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: vault-agent-demo
+  name: app
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-agent-demo
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "internal-app"
+        vault.hashicorp.com/agent-inject-secret-helloworld: "internal/database/config"
+        #vault.hashicorp.com/agent-inject-secret-credentials.txt: "internal/data/database/config" 
+        vault.hashicorp.com/agent-inject-template-helloworld: |
+          {{- with secret "internal/data/database/config" -}}
+          postgresql://{{ .Data.data.username }}:{{ .Data.data.password }}@postgres:5432/wizard
+          {{- end }}
+      labels:
+        app: vault-agent-demo
+    spec:
+      serviceAccountName: internal-app
+      containers:
+      - image: jweissig/app:0.0.1
+        name: app
+EOF
+```
+Next, lets launch our example application and create the service account. We can also verify there are no secrets mounted at `/vault/secrets`.
+```
+kubectl exec -it app-789d677db4-9fd5m -c app -- ls -l /vault/secrets
+kubectl exec -it app-789d677db4-9fd5m -c app -- cat /vault/secrets/helloworld
+```
+
+
+
