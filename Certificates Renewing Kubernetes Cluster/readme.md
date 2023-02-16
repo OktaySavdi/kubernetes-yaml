@@ -26,9 +26,9 @@
 2.  Run the following commands to back up the existing Kubernetes certificates:
     
     ```plaintext
-    mkdir -p $HOME/fcik8s-old-certs/pki
-    cp -p /etc/kubernetes/pki/*.* $HOME/fcik8s-old-certs/pki
-    ls -l $HOME/fcik8s-old-certs/pki/
+    mkdir -p $HOME/k8s-old-certs/pki
+    cp -p /etc/kubernetes/pki/*.* $HOME/k8s-old-certs/pki
+    ls -l $HOME/k8s-old-certs/pki/
     ```
     
     The output will be similar to the following:
@@ -53,8 +53,8 @@
 3.  Run the following commands to back up the existing configurtion files:
     
     ```plaintext
-    cp -p /etc/kubernetes/*.conf $HOME/fcik8s-old-certs
-    ls -ltr $HOME/fcik8s-old-certs
+    cp -p /etc/kubernetes/*.conf $HOME/k8s-old-certs
+    ls -ltr $HOME/k8s-old-certs
     ```
     
     The output will be similar to the following:
@@ -70,9 +70,9 @@
 4.  Run the following commands to back up your home configuration:
     
     ```plaintext
-    mkdir -p $HOME/fcik8s-old-certs/.kube
-    cp -p ~/.kube/config $HOME/fcik8s-old-certs/.kube/.
-    ls -l $HOME/fcik8s-old-certs/.kube/.
+    mkdir -p $HOME/k8s-old-certs/.kube
+    cp -p ~/.kube/config $HOME/k8s-old-certs/.kube/.
+    ls -l $HOME/k8s-old-certs/.kube/.
     ```
     
     The output will be similar to the following:
