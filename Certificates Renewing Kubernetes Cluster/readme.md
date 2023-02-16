@@ -27,7 +27,7 @@
     
     ```plaintext
     mkdir -p $HOME/fcik8s-old-certs/pki
-    /bin/cp -p /etc/kubernetes/pki/*.* $HOME/fcik8s-old-certs/pki
+    cp -p /etc/kubernetes/pki/*.* $HOME/fcik8s-old-certs/pki
     ls -l $HOME/fcik8s-old-certs/pki/
     ```
     
@@ -53,7 +53,7 @@
 3.  Run the following commands to back up the existing configurtion files:
     
     ```plaintext
-    /bin/cp -p /etc/kubernetes/*.conf $HOME/fcik8s-old-certs
+    cp -p /etc/kubernetes/*.conf $HOME/fcik8s-old-certs
     ls -ltr $HOME/fcik8s-old-certs
     ```
     
@@ -71,7 +71,7 @@
     
     ```plaintext
     mkdir -p $HOME/fcik8s-old-certs/.kube
-    /bin/cp -p ~/.kube/config $HOME/fcik8s-old-certs/.kube/.
+    cp -p ~/.kube/config $HOME/fcik8s-old-certs/.kube/.
     ls -l $HOME/fcik8s-old-certs/.kube/.
     ```
     
