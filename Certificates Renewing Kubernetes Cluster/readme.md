@@ -4,7 +4,7 @@
 1.  Log on to the Kubernetes master node as the  `root`  user and run the following command to check when the Kubernetes certificates will expire.
     
     ```plaintext
-    kubeadm alpha certs check-expiration
+    kubeadm certs check-expiration
     ```
     
     The output will be similar to the following. In this case the certificates will expire in 273 days.
