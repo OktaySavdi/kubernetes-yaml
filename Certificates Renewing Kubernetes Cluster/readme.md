@@ -142,7 +142,7 @@
 9.  Run the following command:
     
 ```plaintext
-diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
+diff $HOME/k8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
 If there is no output, the  `kubelet.conf`  file was not updated with the new certificate information.
     
@@ -151,7 +151,7 @@ If there is no output, the  `kubelet.conf`  file was not updated with the new ce
 ```plaintext
 cd /etc/kubernetes
 sudo kubeadm alpha kubeconfig user --org system:nodes --client-name system:node:$(hostname) > kubelet.conf
-diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
+diff $HOME/k8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
     
 If the output shows a difference, the file  `kubelet.conf`  was updated with the new certificate information.
@@ -159,7 +159,7 @@ If the output shows a difference, the file  `kubelet.conf`  was updated with the
 11.  Run the following command:
     
 ```plaintext
-diff ~/.kube/config $HOME/fcik8s-old-certs/.kube/config
+diff ~/.kube/config $HOME/k8s-old-certs/.kube/config
 ```
     
 If there is no output, the  `config`  file still has the outdated keys and certificate values in it.
