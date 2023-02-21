@@ -54,6 +54,10 @@ kubectl set volume dc/<DC-NAME> -t configmap --name trusted-ca --add --read-only
 kubectl set env --from=configmap/deneme dc/map
 ```
 **secret**
+```
+kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.crt}" | base64 -d
+kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.key}" | base64 -d
+```
 ```ruby
 kubectl create secret generic db-secret \
         --from-literal=DB_HOST=sql01 \
