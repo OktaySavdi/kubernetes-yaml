@@ -71,6 +71,7 @@ Perform a health check:
 ```
 kubectl get no
 ```  
+Change User into the cluster
 ```
 kubectl config set-context os1-admin --user=build-robot
 or 
