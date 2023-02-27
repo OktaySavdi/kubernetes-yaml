@@ -55,7 +55,7 @@ export TOKEN=$(kubectl -n default get secret $TOKENNAME -o jsonpath='{.data.toke
 Check the token health level, make a request to the Kubernetes API with the token in the  `"Authorization: Bearer <TOKEN-HERE>"`  header:
 ```
 export APISERVER=$(kubectl config view -o jsonpath="{.clusters[?(@.name==\"<Cluster_Name>\")].cluster.server}")
-curl -k -H "Authorization: Bearer $TOKEN" -X GET $APISERVER/api/v1/namespaces | jq -r '.items[].metadata.name'
+curl -ks -H "Authorization: Bearer $TOKEN" -X GET $APISERVER/api/v1/namespaces | jq -r '.items[].metadata.name'
 ```
 Add the service account to kubeconfig:
 ```
