@@ -70,7 +70,12 @@ kubectl config set-context --current --user=<service-account-name>
 Perform a health check:
 ```
 kubectl get no
-```                                                                                                      
+```  
+```
+kubectl config set-context os1-admin --user=build-robot
+or 
+kubectl config set-context <context_name> --user=<clusterAdmin_User>
+```
 Check Service Account Token
 ```
 kubectl exec -it <pod_name> -- ls /var/run/secrets/kubernetes.io/serviceaccount/token
