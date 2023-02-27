@@ -54,7 +54,8 @@ export TOKEN=$(kubectl -n default get secret $TOKENNAME -o jsonpath='{.data.toke
 ```
 Check the token health level, make a request to the Kubernetes API with the token in the  `"Authorization: Bearer <TOKEN-HERE>"`  header:
 ```
-curl -k -H "Authorization: Bearer $TOKEN" -X GET "https://<KUBE-API-IP>:6443/api/v1/nodes" | json_pp
+export KUBE_API_IP=$(kubectl cluster-info | head -n 1 | awk '{print $7}')
+curl -k -H "Authorization: Bearer $TOKEN" -X GET "$KUBE_API_IP/api/v1/namespaces" | jq -r '.items[].metadata.name'
 ```
 Add the service account to kubeconfig:
 ```
