@@ -1,4 +1,5 @@
 
+
 Create service account
 ```
 kubectl create sa build-robot
@@ -22,6 +23,25 @@ kubectl patch serviceaccount build-robot -p '{"secrets": [{"name": "build-robot-
 If you view the Secret using:
 ```
 kubectl get secret/build-robot-secret -o yaml
+```
+Create Custom Cluster Role
+```
+kubectl create -f deployment-role.yaml
+```
+Create Custom Cluster Rolebinding
+```
+kubectl create clusterrolebinding custom-role --clusterrole=custom-edit --serviceaccount=default:build-robot
+```
+Check permission
+```
+kubectl auth can-i --list --as=system:serviceaccount:<namespace>:<serviceaccount> -n <namespace>
+kubectl auth can-i get pods --as=system:serviceaccount:<namespace>:<serviceaccount> -n <namespace>
+kubectl auth can-i delete deployments --as=system:serviceaccount:<namespace>:<serviceaccount> -n <namespace>  
+kubectl auth can-i create sa --as=system:serviceaccount:<namespace>:<serviceaccount> -n <namespace>  
+
+kubectl auth can-i --list --as=system:serviceaccount:default:build-robot -n app
+kubectl auth can-i get pods --as=system:serviceaccount:default:build-robot -n app
+kubectl auth can-i delete deployments --as=system:serviceaccount:default:build-robot -n app
 ```
 
 ### Get the secret name of the created ServiceAccount that stores the token:
@@ -48,4 +68,7 @@ Perform a health check:
 ```
 kubectl get no
 ```                                                                                                      
-The updated kubeconfig will be located in the  `$HOME/.kube/config`  home directory.
+Check Service Account Token
+```
+kubectl exec -it <pod_name> -- ls /var/run/secrets/kubernetes.io/serviceaccount/token
+```
