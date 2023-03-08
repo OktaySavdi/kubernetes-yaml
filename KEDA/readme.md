@@ -85,7 +85,7 @@ spec:
   type: LoadBalancer
 EOF 
 ```
-### Load generator
+### Load Generator
 ```yaml
 cat <<EOF | kubectl create -f -
 apiVersion: apps/v1
