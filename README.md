@@ -172,13 +172,18 @@ kubectl config set-credentials <user> --client-certificate=<path/to/cert> --embe
 kubectl config --kubeconfig=<config/path> use-context <cluster> # Set a context utilizing a specific config file
 kubectl config set-context gce --user=cluster-admin --namespace=foo && kubectl config use-context gce # Set a context utilizing a specific username and namespace
 
-# Get commands with basic output
-kubectl get services                          # List all services in the namespace
-kubectl get pods --all-namespaces             # List all pods in all namespaces
-kubectl get pods -o wide                      # List all pods in the current namespace, with more details
-kubectl get deployment my-dep                 # List a particular deployment
-kubectl get pods                              # List all pods in the namespace
-kubectl get pod my-pod -o yaml                # Get a pod's YAML
+# export kubeconfig certificate
+kubectl config get-users | grep os1
+kubectl config view --raw -o jsonpath="{.users[?(@.name=='clusterAdmin_rg-hce_os1')].user.client-certificate-data}" | base64 -d
+kubectl config view --raw -o jsonpath="{.users[?(@.name=='clusterAdmin_rg-hce_os1')].user.client-key-data}" | base64 -d
+
+kubectlconfig get-clusters | grep os1
+kubectl config view --raw -o jsonpath="{.clusters[?(@.name=='os1')].cluster.certificate-authority-data}" | base64 -d
+
+kubectl config view --raw --contexts=os1-admin | grep client-certificate-data  | awk '{print $2}' | base64 -d
+kubectl config view --raw --context=os1-admin | grep client-key-data  | awk '{print $2}' | base64 -d
+kubectl config view --raw --context=os1-admin | grep certificate-authority-data | awk '{print $2}' | base64 -d
+
 
 # List Services Sorted by Name
 kubectl get services --sort-by=.metadata.name
