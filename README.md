@@ -177,7 +177,7 @@ kubectl config get-users | grep os1
 kubectl config view --raw -o jsonpath="{.users[?(@.name=='clusterAdmin_rg-hce_os1')].user.client-certificate-data}" | base64 -d
 kubectl config view --raw -o jsonpath="{.users[?(@.name=='clusterAdmin_rg-hce_os1')].user.client-key-data}" | base64 -d
 
-kubectlconfig get-clusters | grep os1
+kubectl config get-clusters | grep os1
 kubectl config view --raw -o jsonpath="{.clusters[?(@.name=='os1')].cluster.certificate-authority-data}" | base64 -d
 
 kubectl config view --raw --contexts=os1-admin | grep client-certificate-data  | awk '{print $2}' | base64 -d
