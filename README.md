@@ -57,6 +57,7 @@ kubectl set env --from=configmap/deneme dc/map
 ```
 kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.crt}" | base64 -d
 kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.key}" | base64 -d
+kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.crt}" | base64 -d | openssl x509 -noout -text
 ```
 ```ruby
 kubectl create secret generic db-secret \
