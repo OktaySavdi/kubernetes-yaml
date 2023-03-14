@@ -1,0 +1,69 @@
+global:
+  storageClass: "default"
+
+adminPassword: "pTUhp8Z0yLpYUbHee9Ha"
+externalURL: https://myharbor.com
+logLevel: debug
+
+internalTLS:
+  enabled: false
+ipFamily:
+  ipv6:
+    enabled: false
+
+exposureType: proxy
+
+service:
+  type: LoadBalancer
+  ##loadBalancerIP: ""
+
+persistence:
+  enabled: true
+  resourcePolicy: 'keep'
+  persistentVolumeClaim:
+    registry:
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi #100Gi
+    jobservice:
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+    scanData:
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+    chartmuseum:
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi
+    trivy:
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi
+nginx:
+  tls:
+    enabled: true
+    existingSecret: "my-harbor-crt"
+    commonName: myharbor.com
+    
+jobservice:
+  updateStrategy:
+    type: Recreate
+  
+registry:
+  updateStrategy:
+    type: Recreate
+
+chartmuseum:
+  updateStrategy:
+    type: Recreate
+
+notary:
+  enabled: true
+  
+postgresql:
+  enabled: true
+  auth:
+    enablePostgresUser: true
+    postgresPassword: '2u052oxF4cyeGEGwOEL3'
