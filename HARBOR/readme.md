@@ -44,7 +44,12 @@ helm install myharbor bitnami/harbor -f values.yaml
 ```
 kubectl get secret -n <NAMESPACE> <SECRET NAME - harbor-core-envvars> -o jsonpath='{.data.HARBOR_ADMIN_PASSWORD}'| base64 --decode
 ```
-
+### Login via CLI
+```
+podman login myharbor.com -u <user> -p '<password>' --tls-verify=false
+podman pull quay.io/oktaysavdi/istioproject
+podman push quay.io/oktaysavdi/istioproject myharbor.com/library/istio:latest --tls-verify=false
+```
 URL - https://artifacthub.io/packages/helm/bitnami/harbor
 
 URL - https://goharbor.io/docs/
