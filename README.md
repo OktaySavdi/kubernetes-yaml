@@ -53,6 +53,11 @@ kubectl create secret docker-registry private-reg-cred \
                --docker-email=dock_user@myprivateregistry.com
 ```
 ```ruby
+# Decode certificate in secret
+oc get secret wildcard-cert -n acme -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
+```
+
+```ruby
 # Generic
 kubectl create secret generic oia-secret --from-literal=username=myuser --from-literal=password=mypassword
 kubectl create secret generic test-secret --from-literal=username='my-app' --from-literal=password='39528$vdg7Jb'
