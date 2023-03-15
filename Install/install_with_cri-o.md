@@ -47,7 +47,7 @@ I have used one additional entry **192.168.1.45   vip-k8s-master** in host file 
 ```shell
 ssh-keygen
 ```
-```bash
+```shell
 for host in 192.168.1.40 \
             192.168.1.41 \
             192.168.1.42 \
@@ -167,7 +167,7 @@ Now copy theses three files (**check_apiserver.sh , keepalived.conf** and **hapr
 
 Run the following for loop to scp these files to master 2 and 3
 ```shell
-[kadmin@k8s-master1 ~]$ for f in k8s-master2 k8s-master3 vip-k8s-master; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
+[kadmin@k8s-master1 ~]$ for f in k8s-master2 k8s-master3 lb.example.com; do scp /etc/keepalived/check_apiserver.sh /etc/keepalived/keepalived.conf root@$f:/etc/keepalived; scp /etc/haproxy/haproxy.cfg root@$f:/etc/haproxy; done
 ```
 **Note:** Don’t forget to change two parameters in keepalived.conf file that we discuss above for k8s-master2 & 3
 
@@ -177,7 +177,7 @@ firewall-cmd --add-rich-rule='rule protocol value="vrrp" accept' --permanent
 firewall-cmd --permanent --add-port=8443/tcp
 firewall-cmd --reload
 ```
-Now Finally start and enable keepalived and haproxy service on all three master nodes and vip-k8s-master using the following commands :
+Now Finally start and enable keepalived and haproxy service on all three master nodes and lb.example.com using the following commands :
 ```shell
 systemctl enable keepalived --now
 systemctl enable haproxy --now
@@ -242,9 +242,9 @@ modprobe br_netfilter
 sh -c "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
 sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
 ```
-### Step 4) Install Container Run Time (CRI) Containerd on Master & Worker Nodes
+### Step 4) Install Container Run Time (CRI) CRI-O on Master & Worker Nodes
 
-Install Container (Container Run Time) on all the master nodes and worker nodes, run the following command,
+Install **CRI-O**(Container Run Time) on all the master nodes and worker nodes, run the following command,
 
 Install and configure prerequisites:
 
@@ -281,39 +281,36 @@ gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 priority=1
 ```
-Load the necessary modules for Containerd:
 ```shell
-cat <<EOF | tee /etc/modules-load.d/containerd.conf
+yum install yum-utils device-mapper-persistent-data lvm2 bash-completion -y
+```
+**letting ipTables see bridged networks**
+```shell
+cat <<EOF | tee /etc/modules-load.d/k8s.conf
+br_netfilter
+EOF
+```
+**Create the .conf file to load the modules at bootup**
+```shell
+cat <<EOF | tee /etc/modules-load.d/crio.conf
 overlay
 br_netfilter
 EOF
-
+```
+```shell
 modprobe overlay
 modprobe br_netfilter
 ```
-Setup the required kernel parameters:
+***Set up required sysctl params, these persist across reboots.**
 ```shell
 cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables = 1
-net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
 EOF
-
-sysctl --system
 ```
-````shell
-yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
-````
-download containerd rpm files in https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
-````shell
-wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.9-3.1.el7.x86_64.rpm
-rpm -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
-````
-Configure containerd:
 ```shell
-mkdir -p /etc/containerd
-containerd config default | tee /etc/containerd/config.toml
-systemctl restart containerd
+sysctl --system
 ```
 Now, let’s install kubeadm , kubelet and kubectl in the next step
 
@@ -333,50 +330,82 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 ```
+**Install CRI-O binaries**
+
+| Operating system | `$OS` |
+|--|--|
+| Centos 8 | `CentOS_8` |
+| Centos 8 Stream| `CentOS_8_Stream` |
+| Centos 7 | `CentOS_7` |
+
+```shell
+#set OS version
+OS=CentOS_7
+
+#set CRI-O
+VERSION=1.22
+
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/devel:kubic:libcontainers:stable.repo
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
+yum install -y cri-o
+```
+**Install crictl**
+
+crictl can be downloaded from cri-tools release page:
+```shell
+VERSION="v1.22.0"
+wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
+sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
+rm -f crictl-$VERSION-linux-amd64.tar.gz
+```
 Now run below yum command to install these packages,
 ```shell
-yum install -y kubelet-1.23.0-0 kubeadm-1.23.0-0 kubectl-1.23.0-0 --disableexcludes=kubernetes
+yum install -y kubelet-1.22.4-0 kubeadm-1.22.4-0 kubectl-1.22.4-0 --disableexcludes=kubernetes
 ```
 Run following systemctl command to enable kubelet service on all nodes ( master and worker nodes)
 ```shell
 systemctl enable kubelet --now
 ```
-#Add proxy configuration for container runtime
+**Service enable**
 ```shell
-vi /usr/lib/systemd/system/containerd.service
+systemctl daemon-reload
+systemctl restart kubelet
+systemctl status kubelet
+systemctl enable crio
+systemctl restart crio
+systemctl status crio
+```
+**Add proxy configuration for container runtime**
+```shell
+vi /etc/systemd/system/multi-user.target.wants/crio.service
 ```
 ```shell
 [Service]
-ExecStartPre=-/sbin/modprobe overlay
-ExecStart=/usr/bin/containerd
 Environment="HTTP_PROXY=http://proxy.example.com:80"
 Environment="HTTPS_PROXY=http://proxy.example.com:80"
 Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 ```
 
-#service enable
+![image](https://user-images.githubusercontent.com/3519706/144755405-a1f9f946-9f5e-4fac-bd80-1561b0e21eb8.png)
+
+**Service enable**
 ```shell
 systemctl daemon-reload
 systemctl restart kubelet
 systemctl status kubelet
-systemctl enable containerd
-systemctl restart containerd
-systemctl status containerd
+systemctl enable crio
+systemctl restart crio
+systemctl status crio
 ```
-#test containerd
+**Test cri-o**
 ```shell
-ctr image pull quay.io/oktaysavdi/istioproject:latest
+crictl pull quay.io/oktaysavdi/istioproject
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
-Create config file for customization - [Example](kubeadm%20config%20print%20init-defaults%20--component-configs=KubeletConfiguration)
-```shell
-kubeadm config print init-defaults
-kubeadm config print init-defaults --component-configs=KubeletConfiguration
-```
 Now move to first master node / control plane and issue the following command,
 ```shell
-kubeadm init --config=config.yaml --upload-certs
+[kadmin@k8s-master1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:6443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
 
@@ -471,7 +500,7 @@ exclude=kubelet kubeadm kubectl
 EOF
 ```
 ```shell
-yum install -y kubectl --disableexcludes=kubernetes
+yum install -y  kubectl --disableexcludes=kubernetes
 ```
 Now add following entry in /etc/host file,
 ```shell
@@ -512,12 +541,12 @@ Let’s try to scale replicas from 1 to 4, run the following command,
 [kadmin@vip-k8s-master ~]$ kubectl scale deployment nginx-lab --replicas=4
 deployment.apps/nginx-lab scaled
 
-[kadmin@localhost ~]$ kubectl get deployments.apps nginx-lab
+[kadmin@vip-k8s-master ~]$ kubectl get deployments.apps nginx-lab
 NAME        READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-lab   4/4     4            4           3m10s
 ```
 Now expose the deployment as service, run
-```shell
+```
 [kadmin@vip-k8s-master ~]$ kubectl expose deployment nginx-lab --name=nginx-lab --type=NodePort --port=80 --target-port=80
 service/nginx-lab exposed
 ```
@@ -537,8 +566,4 @@ Output would be something like below:
 
 Perfect, that’s confirm we have successfully deployed highly available Kubernetes cluster with kubeadm on CentOS 7 servers. Please don’t hesitate to share your valuable feedback and comments.
 
-[+] reference : https://averagelinuxuser.com/kubernetes_containerd/
-
-[+] Package1  : https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
-
-[+] Package2  : https://centos.pkgs.org/7/docker-ce-stable-x86_64/
+[+] reference : https://arabitnetwork.com/2021/02/20/install-kubernetes-with-cri-o-on-centos-7-step-by-step/

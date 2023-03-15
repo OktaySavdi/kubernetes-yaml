@@ -301,18 +301,30 @@ EOF
 
 sysctl --system
 ```
-````shell
-yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
-````
-download containerd rpm files in https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
-````shell
-wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.9-3.1.el7.x86_64.rpm
-rpm -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
-````
+install containerd
+```
+dnf remove podman buildah runc -y
+dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+yum install docker-ce yum-utils device-mapper-persistent-data lvm2 bash-completion -y
+if you want you can download containerd rpm files in https://download.docker.com/linux/centos/8/x86_64/stable/Packages/
+```
 Configure containerd:
 ```shell
 mkdir -p /etc/containerd
 containerd config default | tee /etc/containerd/config.toml
+systemctl restart containerd
+```
+**Using the systemd cgroup driver**
+
+To use the systemd cgroup driver in /etc/containerd/config.toml with runc, set
+```
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+  ...
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    SystemdCgroup = true
+```
+If you apply this change make sure to restart containerd again:
+```
 systemctl restart containerd
 ```
 Now, let’s install kubeadm , kubelet and kubectl in the next step
@@ -335,7 +347,7 @@ EOF
 ```
 Now run below yum command to install these packages,
 ```shell
-yum install -y kubelet-1.23.0-0 kubeadm-1.23.0-0 kubectl-1.23.0-0 --disableexcludes=kubernetes
+yum install -y kubelet-1.22.4-0 kubeadm-1.22.4-0 kubectl-1.22.4-0 --disableexcludes=kubernetes
 ```
 Run following systemctl command to enable kubelet service on all nodes ( master and worker nodes)
 ```shell
@@ -365,18 +377,13 @@ systemctl status containerd
 ```
 #test containerd
 ```shell
-ctr image pull quay.io/oktaysavdi/istioproject:latest
+ctr image pull quay.io/oktaysavdi/istioproject
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
-Create config file for customization - [Example](kubeadm%20config%20print%20init-defaults%20--component-configs=KubeletConfiguration)
-```shell
-kubeadm config print init-defaults
-kubeadm config print init-defaults --component-configs=KubeletConfiguration
-```
 Now move to first master node / control plane and issue the following command,
 ```shell
-kubeadm init --config=config.yaml --upload-certs
+[kadmin@k8s-master1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:6443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
 

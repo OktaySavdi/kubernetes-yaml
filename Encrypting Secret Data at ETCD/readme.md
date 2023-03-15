@@ -9,8 +9,11 @@ Your output will look something similar to the following example. Keep note of t
 ```
 WxaW1k22mu3M/WYMIWYVOkAOrOTJ17+Q5+McAIqK3bM=
 ```
-3.  Create a new file called **/etc/kubernetes/pki/secrets.yml**
-4.  Add the following to its contents.  
+3.  Create a new file called 
+```
+/etc/kubernetes/pki/encrypt-etcd-secrets.yml
+```
+5.  Add the following to its contents.  
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
 kind: EncryptionConfiguration
@@ -41,10 +44,9 @@ spec:
      - --authorization-mode=Node,RBAC
      [...]
 ```
-  
-  And add add the following line somewhere under  `- kube-apiserver`.
+And add add the following line somewhere under  `- kube-apiserver`.
 ```   
-- --encryption-provider-config=/etc/kubernetes/pki/secrets.yaml
+- --encryption-provider-config=/etc/kubernetes/pki/encrypt-etcd-secrets.yml
 ```   
 3.  Changes saved to the manifest will automatically be loaded by the API controller. There is no need restart an services.
 

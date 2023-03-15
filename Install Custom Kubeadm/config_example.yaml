@@ -1,33 +1,42 @@
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta2
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 192.168.1.40
+  advertiseAddress: 10.10.10.10
   bindPort: 6443
 nodeRegistration:
   name: k8s-master1
-  imagePullPolicy: IfNotPresent
-  criSocket: "unix:///var/run/crio/crio.sock"
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
+  criSocket: /var/run/dockershim.sock
+  kubeletExtraArgs:
+    cgroupDriver: systemd
   ignorePreflightErrors:
     - IsPrivilegedUser
 ---
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
 clusterName: savdi-cluster.local
+etcd:
+  external:
+      endpoints:
+      - https://10.10.10.10:2379
+      - https://10.10.10.11:2379
+      - https://10.10.10.12:2379
+      caFile: /etc/ssl/etcd/ssl/ca.pem
+      certFile: /etc/ssl/etcd/ssl/node-k8s-master1.pem
+      keyFile: /etc/ssl/etcd/ssl/node-k8s-master1-key.pem
 dns:
   type: CoreDNS
   imageRepository: k8s.gcr.io
-etcd:
-  local:
-    dataDir: /var/lib/etcd
+  imageTag: v1.8.0
 networking:
   dnsDomain: savdi-cluster.local
   serviceSubnet: "10.233.0.0/18"
   podSubnet: "10.233.64.0/18"
-kubernetesVersion: v1.22.4
-controlPlaneEndpoint: 192.168.1.45:6443
+kubernetesVersion: v1.22.2
+controlPlaneEndpoint: 10.10.10.15:6443
+certificatesDir: /etc/kubernetes/ssl
 imageRepository: k8s.gcr.io
 apiServer:
   extraArgs:
@@ -37,6 +46,7 @@ apiServer:
     authorization-mode: Node,RBAC
     bind-address: 0.0.0.0
     insecure-port: "0"
+    enable-admission-plugins: PodSecurityPolicy
     apiserver-count: "3"
     endpoint-reconciler-type: lease
     service-node-port-range: 30000-32767
@@ -45,12 +55,62 @@ apiServer:
     profiling: "False"
     request-timeout: "1m0s"
     enable-aggregator-routing: "False"
+    encryption-provider-config: /etc/kubernetes/ssl/secrets_encryption.yaml
     storage-backend: etcd3
     allow-privileged: "true"
+    audit-policy-file: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+    audit-log-path: "/var/log/audit/kube-apiserver-audit.log"
     audit-log-maxage: "30"
     audit-log-maxbackup: "1"
     audit-log-maxsize: "100"
     event-ttl: 1h0m0s
+  extraVolumes:
+  - name: audit-policy
+    hostPath: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+    mountPath: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+    readOnly: true
+    pathType: "File"
+  - name: audit-logs
+    hostPath: /var/log/kubernetes/audit/kube-apiserver-audit.log
+    mountPath: /var/log/audit/kube-apiserver-audit.log
+    readOnly: false
+    pathType: "FileOrCreate"
+  - name: secrets-encryption
+    hostPath: /etc/kubernetes/secret/secrets_encryption.yaml
+    mountPath: /etc/kubernetes/secret/secrets_encryption.yaml
+    readOnly: true
+    pathType: "File"
+  - name: etc-pki-tls
+    hostPath: /etc/pki/tls
+    mountPath: /etc/pki/tls
+    readOnly: true
+  - name: etc-pki-ca-trust
+    hostPath: /etc/pki/ca-trust
+    mountPath: /etc/pki/ca-trust
+    readOnly: true
+  certSANs:
+  - kubernetes
+  - kubernetes.default
+  - kubernetes.default.svc
+  - kubernetes.default.svc.savdi-cluster.local
+  - 10.233.0.1
+  - localhost
+  - 127.0.0.1
+  - k8s-master1
+  - k8s-master2
+  - k8s-master3
+  - lb-kube.example.com
+  - 10.10.10.15
+  - 10.10.10.10
+  - 10.10.10.11
+  - 10.10.10.12
+  - 10.10.10.13
+  - 10.10.10.14
+  - 10.10.10.16
+  - k8s-master1.savdi-cluster.local
+  - k8s-master2.savdi-cluster.local
+  - k8s-master3.savdi-cluster.local
+  timeoutForControlPlane: 5m0s
 controllerManager:
   extraArgs:
     node-monitor-grace-period: 40s
@@ -64,6 +124,15 @@ controllerManager:
     leader-elect-lease-duration: 15s
     leader-elect-renew-deadline: 10s
     configure-cloud-routes: "false"
+scheduler:
+  extraArgs:
+    bind-address: 0.0.0.0
+    config: /etc/kubernetes/kubescheduler-config.yaml
+  extraVolumes:
+  - name: kubescheduler-config
+    hostPath: /etc/kubernetes/kubescheduler-config.yaml
+    mountPath: /etc/kubernetes/kubescheduler-config.yaml
+    readOnly: true
 ---
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 kind: KubeProxyConfiguration
@@ -115,13 +184,14 @@ authentication:
   webhook:
     enabled: True
   x509:
-    clientCAFile: /etc/kubernetes/pki/ca.crt
+    clientCAFile: /etc/kubernetes/ssl/ca.crt
 authorization:
   mode: Webhook
 staticPodPath: /etc/kubernetes/manifests
 containerLogMaxFiles: 5
 containerLogMaxSize: 10Mi
 maxPods: 110
+address: 10.10.10.10
 readOnlyPort: 0
 healthzPort: 10248
 healthzBindAddress: 127.0.0.1

@@ -47,10 +47,30 @@ apiServer:
     enable-aggregator-routing: "False"
     storage-backend: etcd3
     allow-privileged: "true"
+    enable-admission-plugins: PodSecurityPolicy,NodeRestriction
+    encryption-provider-config: /etc/kubernetes/secret/secrets_encryption.yaml
+    audit-policy-file: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+    audit-log-path: "/var/log/audit/kube-apiserver-audit.log"
     audit-log-maxage: "30"
     audit-log-maxbackup: "1"
     audit-log-maxsize: "100"
     event-ttl: 1h0m0s
+  extraVolumes:
+    - name: audit-policy
+      hostPath: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+      mountPath: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+      readOnly: true
+      pathType: "File"
+    - name: audit-logs
+      hostPath: /var/log/kubernetes/audit/kube-apiserver-audit.log
+      mountPath: /var/log/audit/kube-apiserver-audit.log
+      readOnly: false
+      pathType: "FileOrCreate"
+    - name: secrets-encryption
+      hostPath: /etc/kubernetes/secret/secrets_encryption.yaml
+      mountPath: /etc/kubernetes/secret/secrets_encryption.yaml
+      readOnly: true
+      pathType: "File"
 controllerManager:
   extraArgs:
     node-monitor-grace-period: 40s
@@ -64,6 +84,7 @@ controllerManager:
     leader-elect-lease-duration: 15s
     leader-elect-renew-deadline: 10s
     configure-cloud-routes: "false"
+    timeoutForControlPlane: 5m0s
 ---
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 kind: KubeProxyConfiguration
@@ -122,6 +143,7 @@ staticPodPath: /etc/kubernetes/manifests
 containerLogMaxFiles: 5
 containerLogMaxSize: 10Mi
 maxPods: 110
+address: 192.168.1.40
 readOnlyPort: 0
 healthzPort: 10248
 healthzBindAddress: 127.0.0.1

@@ -27,13 +27,13 @@ Minimum requirements for setting up Highly K8s cluster
 Let’s jump into the installation and configuration
 
 ### Step 1) Set Hostname and add entries in /etc/hosts file
-```
+```shell
 hostnamectl set-hostname "k8s-master1"
 exec bash
 ```
 Similarly, run above command on remaining nodes and set their respective hostname. 
 Once hostname is set on all master and worker nodes then add the following entries in **/etc/hosts** file on all the nodes.
-```shell
+```
 echo "192.168.1.40   k8s-master1" | tee --append /etc/hosts    
 echo "192.168.1.41   k8s-master2" | tee --append /etc/hosts
 echo "192.168.1.42   k8s-master3" | tee --append /etc/hosts
@@ -43,11 +43,11 @@ echo "192.168.1.45   vip-k8s-master" | tee --append /etc/hosts
 ```
 I have used one additional entry **192.168.1.45   vip-k8s-master** in host file because I will be using this IP and hostname while configuring the haproxy and keepalived on all master nodes. This IP will be used as **kube-apiserver load balancer ip**. All the kube-apiserver request will come to this IP and then the request will be distributed among backend actual kube-apiservers.
 
-**Deploy ssh key from LB server to all nodes**
-```shell
+Deploy ssh key from LB server to all nodes
+```
 ssh-keygen
 ```
-```bash
+```shell
 for host in 192.168.1.40 \
             192.168.1.41 \
             192.168.1.42 \
@@ -66,7 +66,7 @@ Configure Keepalived on k8s-master1 first, create check_apiserver.sh script will
 ```shell
 [kadmin@k8s-master1 ~]$ vi /etc/keepalived/check_apiserver.sh
 ```
-```shell
+```
 #!/bin/sh
 APISERVER_VIP=192.168.1.45
 APISERVER_DEST_PORT=6443
@@ -94,7 +94,7 @@ Now paste the following contents to /etc/keepalived/keepalived.conf file
 ```shell
 [kadmin@k8s-master1 ~]$ vi /etc/keepalived/keepalived.conf
 ```
-```yaml
+```
 ! /etc/keepalived/keepalived.conf
 ! Configuration File for keepalived
 global_defs {
@@ -137,7 +137,7 @@ Remove all lines after default section and add following lines
 ```shell
 [kadmin@k8s-master1 ~]$ vi /etc/haproxy/haproxy.cfg
 ```
-```yaml
+```
 #---------------------------------------------------------------------
 # apiserver frontend which proxys to the masters
 #---------------------------------------------------------------------
@@ -174,7 +174,7 @@ Run the following for loop to scp these files to master 2 and 3
 In case firewall is running on master nodes then add the following firewall rules on all three master nodes
 ```shell
 firewall-cmd --add-rich-rule='rule protocol value="vrrp" accept' --permanent
-firewall-cmd --permanent --add-port=8443/tcp
+firewall-cmd --permanent --add-port=6443/tcp
 firewall-cmd --reload
 ```
 Now Finally start and enable keepalived and haproxy service on all three master nodes and vip-k8s-master using the following commands :
@@ -242,9 +242,9 @@ modprobe br_netfilter
 sh -c "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
 sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
 ```
-### Step 4) Install Container Run Time (CRI) Containerd on Master & Worker Nodes
+### Step 4) Install Container Run Time (CRI) Docker on Master & Worker Nodes
 
-Install Container (Container Run Time) on all the master nodes and worker nodes, run the following command,
+Install Docker (Container Run Time) on all the master nodes and worker nodes, run the following command,
 
 Install and configure prerequisites:
 
@@ -281,40 +281,12 @@ gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 priority=1
 ```
-Load the necessary modules for Containerd:
-```shell
-cat <<EOF | tee /etc/modules-load.d/containerd.conf
-overlay
-br_netfilter
-EOF
-
-modprobe overlay
-modprobe br_netfilter
-```
-Setup the required kernel parameters:
-```shell
-cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
-net.bridge.bridge-nf-call-iptables = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward = 1
-EOF
-
-sysctl --system
-```
 ````shell
 yum install docker yum-utils device-mapper-persistent-data lvm2 bash-completion -y
 ````
-download containerd rpm files in https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
 ````shell
-wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.9-3.1.el7.x86_64.rpm
-rpm -ivh containerd.io-1.4.9-3.1.el7.x86_64.rpm
+systemctl enable docker --now
 ````
-Configure containerd:
-```shell
-mkdir -p /etc/containerd
-containerd config default | tee /etc/containerd/config.toml
-systemctl restart containerd
-```
 Now, let’s install kubeadm , kubelet and kubectl in the next step
 
 ### Step 5) Install Kubeadm, kubelet and kubectl
@@ -335,7 +307,7 @@ EOF
 ```
 Now run below yum command to install these packages,
 ```shell
-yum install -y kubelet-1.23.0-0 kubeadm-1.23.0-0 kubectl-1.23.0-0 --disableexcludes=kubernetes
+yum install -y kubelet-1.22.2-0 kubeadm-1.22.2-0 kubectl-1.22.2-0 --disableexcludes=kubernetes
 ```
 Run following systemctl command to enable kubelet service on all nodes ( master and worker nodes)
 ```shell
@@ -343,12 +315,13 @@ systemctl enable kubelet --now
 ```
 #Add proxy configuration for container runtime
 ```shell
-vi /usr/lib/systemd/system/containerd.service
+mkdir /etc/systemd/system/docker.service.d
+```
+```shell
+vi /etc/systemd/system/docker.service.d/http-proxy.conf
 ```
 ```shell
 [Service]
-ExecStartPre=-/sbin/modprobe overlay
-ExecStart=/usr/bin/containerd
 Environment="HTTP_PROXY=http://proxy.example.com:80"
 Environment="HTTPS_PROXY=http://proxy.example.com:80"
 Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
@@ -357,26 +330,20 @@ Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
 #service enable
 ```shell
 systemctl daemon-reload
+systemctl restart docker
+systemctl status docker
 systemctl restart kubelet
 systemctl status kubelet
-systemctl enable containerd
-systemctl restart containerd
-systemctl status containerd
 ```
-#test containerd
+#test docker
 ```shell
-ctr image pull quay.io/oktaysavdi/istioproject:latest
+docker pull quay.io/oktaysavdi/istioproject
 ```
 ## Step 6) Initialize the Kubernetes Cluster from first master node
 
-Create config file for customization - [Example](kubeadm%20config%20print%20init-defaults%20--component-configs=KubeletConfiguration)
-```shell
-kubeadm config print init-defaults
-kubeadm config print init-defaults --component-configs=KubeletConfiguration
-```
 Now move to first master node / control plane and issue the following command,
 ```shell
-kubeadm init --config=config.yaml --upload-certs
+[kadmin@k8s-master1 ~]$ kubeadm init --control-plane-endpoint="192.168.1.45:6443" --upload-certs --apiserver-advertise-address=192.168.1.40 --pod-network-cidr=192.168.0.0/16
 ```
 In above command, apart from this ‘–upload-certs’ option will share the certificates among master nodes automatically
 
@@ -471,7 +438,7 @@ exclude=kubelet kubeadm kubectl
 EOF
 ```
 ```shell
-yum install -y kubectl --disableexcludes=kubernetes
+yum install -y  kubectl --disableexcludes=kubernetes
 ```
 Now add following entry in /etc/host file,
 ```shell
@@ -512,7 +479,7 @@ Let’s try to scale replicas from 1 to 4, run the following command,
 [kadmin@vip-k8s-master ~]$ kubectl scale deployment nginx-lab --replicas=4
 deployment.apps/nginx-lab scaled
 
-[kadmin@localhost ~]$ kubectl get deployments.apps nginx-lab
+[kadmin@vip-k8s-master ~]$ kubectl get deployments.apps nginx-lab
 NAME        READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-lab   4/4     4            4           3m10s
 ```
@@ -537,8 +504,4 @@ Output would be something like below:
 
 Perfect, that’s confirm we have successfully deployed highly available Kubernetes cluster with kubeadm on CentOS 7 servers. Please don’t hesitate to share your valuable feedback and comments.
 
-[+] reference : https://averagelinuxuser.com/kubernetes_containerd/
-
-[+] Package1  : https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
-
-[+] Package2  : https://centos.pkgs.org/7/docker-ce-stable-x86_64/
+[+] reference : https://www.linuxtechi.com/setup-highly-available-kubernetes-cluster-kubeadm/

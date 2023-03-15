@@ -4,7 +4,7 @@
 1.  Edit the  `admission-control.conf`  file:
     
     ```bash
-    sudo vi /etc/kubernetes/admission-control/admission-control.conf
+    vi /etc/kubernetes/policywebhook/admission_config.conf
     ```
     
 2.  Paste in the ImagePolicyWebhook:
@@ -16,7 +16,7 @@
     - name: ImagePolicyWebhook
       configuration:
         imagePolicy:
-          kubeConfigFile: /etc/kubernetes/admission-control/imagepolicy_backend.kubeconfig
+          kubeConfigFile: /etc/kubernetes/policywebhook/kubeconf
           allowTTL: 50
           denyTTL: 50
           retryBackoff: 500
@@ -32,17 +32,17 @@
 
 1.  Edit the kubeconfig file:
     
-    ```bash
-    sudo vi /etc/kubernetes/admission-control/imagepolicy_backend.kubeconfig
-    ```
+```bash
+vi /etc/kubernetes/policywebhook/kubeconf
+```
 ```yaml
 apiVersion: v1
 kind: Config
 clusters:
 - name: trivy-k8s-webhook
   cluster:
-    certificate-authority: /etc/kubernetes/admission-control/imagepolicywebhook-ca.crt
-    server: "https://acg.trivy.k8s.webhook:8090/scan"
+    certificate-authority: /etc/kubernetes/policywebhook/imagepolicywebhook-ca.crt # CA for verifying the remote service.
+    server: "https://acg.trivy.k8s.webhook:8090/scan"                              # URL of remote service to query. Must use 'https'.
 contexts:
 - name: trivy-k8s-webhook
   context:
@@ -53,8 +53,8 @@ preferences: {}
 users:
 - name: api-server
   user:
-    client-certificate: /etc/kubernetes/admission-control/api-server-client.crt
-    client-key: /etc/kubernetes/admission-control/api-server-client.key
+    client-certificate: /etc/kubernetes/policywebhook/api-server-client.crt      # cert for the webhook admission controller to use
+    client-key: /etc/kubernetes/policywebhook/api-server-client.key              # key matching the cert
 ```
     
 2.  Set the location of the backend image scanning service:
@@ -71,13 +71,29 @@ users:
 1.  Edit the kube-apiserver manifest:
     
     ```bash
-    sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
+    vi /etc/kubernetes/manifests/kube-apiserver.yaml
     ```
     
-2.  In the  `command`  container, scroll down to  `--enable-admission-plugins`  and add  `ImagePolicyWebhook`:
+2.  In the  `command`  container, scroll down to  `--enable-admission-plugins`  and add  `ImagePolicyWebhook` neccesary configure:
     
     ```
-    --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+    spec:
+      containers:
+      - command:
+        - kube-apiserver
+        - --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+        - --admission-control-config-file=/etc/kubernetes/policywebhook/admission_config.conf
+    ---
+    volumeMounts:
+    - mountPath: /etc/kubernetes/policywebhook
+      name: policywebhook
+      readyOnly: true
+    ---
+    volumes:
+    - hostPath:
+        path: /etc/kubernetes/policywebhook
+        type: DirectoryOrCreate
+      name: policywebhook
     ```
     
 3.  To save and exit the file, press  **Escape**, type  `:wq`, and hit  **Enter**.
@@ -88,6 +104,7 @@ users:
     kubectl create -f good-pod.yml
     ```
 ```yaml
+cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -97,6 +114,7 @@ spec:
   containers:
   - name: busybox
     image: busybox:1.33.1
+EOF
 ```
     The Pod should be successfully created.
     
@@ -107,6 +125,7 @@ spec:
     ```
 
 ```yaml
+cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -115,6 +134,7 @@ spec:
   containers:
   - name: nginx
     image: nginx:1.14.2
+EOF
 ```
     
     Pod creation should fail and return an error due to image vulnerabilities.

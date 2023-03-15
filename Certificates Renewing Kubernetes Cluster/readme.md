@@ -4,7 +4,7 @@
 1.  Log on to the Kubernetes master node as the  `root`  user and run the following command to check when the Kubernetes certificates will expire.
     
     ```plaintext
-    kubeadm alpha certs check-expiration
+    kubeadm certs check-expiration
     ```
     
     The output will be similar to the following. In this case the certificates will expire in 273 days.
@@ -26,9 +26,9 @@
 2.  Run the following commands to back up the existing Kubernetes certificates:
     
     ```plaintext
-    mkdir -p $HOME/fcik8s-old-certs/pki
-    /bin/cp -p /etc/kubernetes/pki/*.* $HOME/fcik8s-old-certs/pki
-    ls -l $HOME/fcik8s-old-certs/pki/
+    mkdir -p $HOME/k8s-old-certs/pki
+    cp -p /etc/kubernetes/pki/*.* $HOME/k8s-old-certs/pki
+    ls -l $HOME/k8s-old-certs/pki/
     ```
     
     The output will be similar to the following:
@@ -53,8 +53,8 @@
 3.  Run the following commands to back up the existing configurtion files:
     
     ```plaintext
-    /bin/cp -p /etc/kubernetes/*.conf $HOME/fcik8s-old-certs
-    ls -ltr $HOME/fcik8s-old-certs
+    cp -p /etc/kubernetes/*.conf $HOME/k8s-old-certs
+    ls -ltr $HOME/k8s-old-certs
     ```
     
     The output will be similar to the following:
@@ -70,9 +70,9 @@
 4.  Run the following commands to back up your home configuration:
     
     ```plaintext
-    mkdir -p $HOME/fcik8s-old-certs/.kube
-    /bin/cp -p ~/.kube/config $HOME/fcik8s-old-certs/.kube/.
-    ls -l $HOME/fcik8s-old-certs/.kube/.
+    mkdir -p $HOME/k8s-old-certs/.kube
+    cp -p ~/.kube/config $HOME/k8s-old-certs/.kube/.
+    ls -l $HOME/k8s-old-certs/.kube/.
     ```
     
     The output will be similar to the following:
@@ -142,7 +142,7 @@
 9.  Run the following command:
     
 ```plaintext
-diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
+diff $HOME/k8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
 If there is no output, the  `kubelet.conf`  file was not updated with the new certificate information.
     
@@ -151,7 +151,7 @@ If there is no output, the  `kubelet.conf`  file was not updated with the new ce
 ```plaintext
 cd /etc/kubernetes
 sudo kubeadm alpha kubeconfig user --org system:nodes --client-name system:node:$(hostname) > kubelet.conf
-diff $HOME/fcik8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
+diff $HOME/k8s-old-certs/kubelet.conf /etc/kubernetes/kubelet.conf
 ```
     
 If the output shows a difference, the file  `kubelet.conf`  was updated with the new certificate information.
@@ -159,7 +159,7 @@ If the output shows a difference, the file  `kubelet.conf`  was updated with the
 11.  Run the following command:
     
 ```plaintext
-diff ~/.kube/config $HOME/fcik8s-old-certs/.kube/config
+diff ~/.kube/config $HOME/k8s-old-certs/.kube/config
 ```
     
 If there is no output, the  `config`  file still has the outdated keys and certificate values in it.

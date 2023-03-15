@@ -1,6 +1,26 @@
-
+![image](https://user-images.githubusercontent.com/3519706/147205106-a847721d-e250-4979-9755-731754734a8f.png)
 
 # Kubernetes CLI Commands
+
+**Convert**
+```ruby
+kubectl convert -f <old-file> --output-version <new-api>
+```
+
+**kubeadm**
+```ruby
+kubeadm token generate
+kubeadm token create <generated-token> --print-join-command --ttl=0
+
+kubeadm init phase upload-certs --upload-certs
+
+kubeadm join 10.10.10.10:6443 --token < token > --discovery-token-ca-cert-hash sha256:< hash> --control-plane --certificate-key < upload_certs>
+```
+**Call DNS**
+```ruby
+<service-name>.<namespace>.svc.cluster.local:<service-port>
+<pod-ip-address>.<namespace>.pod.cluster.local:<service-port>
+```
 
 **CLI Example**
 ```ruby
@@ -34,6 +54,11 @@ kubectl set volume dc/<DC-NAME> -t configmap --name trusted-ca --add --read-only
 kubectl set env --from=configmap/deneme dc/map
 ```
 **secret**
+```
+kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.crt}" | base64 -d
+kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.key}" | base64 -d
+kubectl -n harbor get secret harbor-jobservice-crt -o json -o jsonpath="{.data.tls\.crt}" | base64 -d | openssl x509 -noout -text
+```
 ```ruby
 kubectl create secret generic db-secret \
         --from-literal=DB_HOST=sql01 \
@@ -112,6 +137,13 @@ kubectl rollout undo deployment example  --to-revision=3
 ```
 # Cheat Sheet
 ```ruby
+# Use Api command
+kubectl api-resources
+kubectl get apiservice
+kubectl delete apiservce <service-name> 
+
+kubectl get --raw='/readyz?verbose'
+
 # Use the --v flag to set a verbosity level.
 kubectl get pods --v=8
 
@@ -133,18 +165,31 @@ KUBECONFIG=~/.kube/config:~/.kube/kubconfig2
 
 kubectl config view
 
-kubectl config get-contexts                          # display list of contexts 
-kubectl config current-context                       # display the current-context
-kubectl config use-context my-cluster-name           # set the default context to my-cluster-name
+kubectl config get-contexts                           # display list of contexts 
+kubectl config current-context                        # display the current-context
+kubectl config use-context my-cluster-name            # set the default context to my-cluster-name
 kubectl config set-context --current --namespace=MyNS # permanently save the namespace for all subsequent kubectl commands in that context.
+kubectl config use-context <cluster>                  # Set the default context to <cluster>
+kubectl config set-credentials <username> [options]   # Sets a user entry in kubeconfig
+kubectl config view -o jsonpath='{.users[?(@.name == "admin")].user.password}' # Get the password for the "admin" user
+kubectl config set-credentials <user> --client-key=~/.kube/admin.key # Sets a user with a client key
+kubectl config set-credentials --username=<username> --password=<password> # Sets a user with basic auth
+kubectl config set-credentials <user> --client-certificate=<path/to/cert> --embed-certs=true # Sets a user with client certificate
+kubectl config --kubeconfig=<config/path> use-context <cluster> # Set a context utilizing a specific config file
+kubectl config set-context gce --user=cluster-admin --namespace=foo && kubectl config use-context gce # Set a context utilizing a specific username and namespace
 
-# Get commands with basic output
-kubectl get services                          # List all services in the namespace
-kubectl get pods --all-namespaces             # List all pods in all namespaces
-kubectl get pods -o wide                      # List all pods in the current namespace, with more details
-kubectl get deployment my-dep                 # List a particular deployment
-kubectl get pods                              # List all pods in the namespace
-kubectl get pod my-pod -o yaml                # Get a pod's YAML
+# export kubeconfig certificate
+kubectl config get-users | grep os1
+kubectl config view --raw -o jsonpath="{.users[?(@.name=='clusterAdmin_rg-hce_os1')].user.client-certificate-data}" | base64 -d
+kubectl config view --raw -o jsonpath="{.users[?(@.name=='clusterAdmin_rg-hce_os1')].user.client-key-data}" | base64 -d
+
+kubectl config get-clusters | grep os1
+kubectl config view --raw -o jsonpath="{.clusters[?(@.name=='os1')].cluster.certificate-authority-data}" | base64 -d
+
+kubectl config view --raw --contexts=os1-admin | grep client-certificate-data  | awk '{print $2}' | base64 -d
+kubectl config view --raw --context=os1-admin | grep client-key-data  | awk '{print $2}' | base64 -d
+kubectl config view --raw --context=os1-admin | grep certificate-authority-data | awk '{print $2}' | base64 -d
+
 
 # List Services Sorted by Name
 kubectl get services --sort-by=.metadata.name
@@ -159,8 +204,7 @@ kubectl get pv --sort-by=.spec.capacity.storage
 kubectl set env deployment/nginx-app  DOMAIN=cluster
 
 # Get the version label of all pods with label app=cassandra
-kubectl get pods --selector=app=cassandra -o \
-  jsonpath='{.items[*].metadata.labels.version}'
+kubectl get pods --selector=app=cassandra -o jsonpath='{.items[*].metadata.labels.version}'
 
 # Get all worker nodes (use a selector to exclude results that have a label
 # named 'node-role.kubernetes.io/master')
@@ -179,7 +223,7 @@ kubectl patch pod valid-pod -p '{"spec":{"containers":[{"name":"kubernetes-serve
 kubectl patch pod valid-pod --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":"new image"}]'
 
 # Disable a deployment livenessProbe using a json patch with positional arrays
-kubectl patch deployment valid-deployment  --type json   -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"}]'
+kubectl patch deployment valid-deployment  --type json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"}]'
 
 # change pod image version
 kubectl patch dc nginx --patch='{"spec":{"template":{"spec":{"containers":[{"name": "nginx", "image":"nginx:1.19.1"}]}}}}'
@@ -278,6 +322,20 @@ kubectl get --all-namespaces svc -o json | jq -r '.items[] | [.metadata.name,([.
 
 # Pod subnets that are used in the cluster
 kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}' | tr " " "\n
+
+# get imagepullpolicy
+kubectl get deploy --no-headers -A -o jsonpath='{range .items[*]}''NS:{.metadata.namespace}{"\t"}APP:{.metadata.name}{"\t"}UnavailableReplicas:{.status.unavailableReplicas}{"\t"}''image:{.spec.template.spec.containers[*].image}{"\t"}Policy:{.spec.template.spec.containers[*].imagePullPolicy}{"\n"}'
+```
+Remove Replicas
+```bash
+delete_not_used_replicasets () {
+replicasets_list=$(kubectl -n harbor-instance get replicasets.apps -A -ojson | jq -r '.items[] | select( .status.replicas | contains(0))' | jq -r '.metadata.name')
+  for replicaset in $replicasets_list; do
+    target_namespace=$(kubectl get replicasets.apps -A -ojson | jq -r --arg replicaset $replicaset '.items[].metadata | select( .name | contains($replicaset))' | jq -r '.namespace')
+    echo "[INFO] Delete replicaset:'$replicaset' in namespace:'$target_namespace'"
+    kubectl delete -n $target_namespace replicasets.apps $replicaset
+  done
+}
 ```
 **Cluster**
 ```ruby

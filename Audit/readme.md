@@ -4,7 +4,7 @@
 1.  Edit the  `audit-policy`  rules file:
     
     ```bash
-    sudo vi /etc/kubernetes/audit-policy.yaml
+    vi /etc/kubernetes/audit-policy.yaml
     ```
     
 2.  Paste in the following YAML rule to log request and response bodies for namespace changes:
@@ -58,7 +58,7 @@
 1.  Edit the  `kube-apiserver`  manifest:
     
     ```bash
-    sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
+    vi /etc/kubernetes/manifests/kube-apiserver.yaml
     ```
     ```bash
     /var/log/kubernetes
@@ -74,7 +74,7 @@
 3.  Add the output directory for the audit logs:
     
     ```yaml
-      - --audit-log-path=/var/log/kubernetes/k8s-audit.log
+      - --audit-log-path=/var/log/kubernetes/audit/audit.log
     ```
     
 4.  Configure the API server to keep old log files a maximum of 60 days with a maximum of only 1 old log file:
@@ -91,7 +91,7 @@ volumeMounts:
   - mountPath: /etc/kubernetes/audit-policy.yaml
     name: audit
     readOnly: true
-  - mountPath: /var/log/audit.log
+  - mountPath: /var/log/kubernetes/audit/audit.log
     name: audit-log
     readOnly: false
 ```
@@ -104,7 +104,7 @@ and finally configure the hostPath:
 
 - name: audit-log
   hostPath:
-    path: /var/log/audit.log
+    path: /var/log/kubernetes/audit/audit.log
     type: FileOrCreate
 ```    
 6.  To save and exit the file, press  **Escape**, type  `:wq`, and hit  **Enter**.
@@ -118,5 +118,5 @@ and finally configure the hostPath:
 8.  View the audit logs:
     
     ```
-    sudo tail -f /var/log/kubernetes/k8s-audit.log
+    tail -f /var/log/kubernetes/audit/audit.log
     ```
