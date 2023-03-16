@@ -135,7 +135,7 @@ kubectl rollout undo deployment example
 kubectl rollout history deployment example --revision=2
 kubectl rollout undo deployment example  --to-revision=3
 ```
-# Cheat Sheet
+**Cheat Sheet**
 ```ruby
 # Use Api command
 kubectl api-resources
