@@ -294,7 +294,7 @@ curl -X PUT localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirst
 # You can also get information regarding the pod by using the `GET` method against the `/status` endpoint
 curl -X GET http://localhost:8001/apis/apps/v1/namespaces/myproject/replicasets/myfirstreplicaset/status
 ```
-# jsonpath
+**jsonpath**
 ```ruby
 kubectl get nodes node01 -o jsonpath='{.metadata.name}'
 
@@ -344,7 +344,7 @@ kubectl cluster-info                                                  # Display 
 kubectl cluster-info dump                                             # Dump current cluster state to stdout
 kubectl cluster-info dump --output-directory=/path/to/cluster-state   # Dump current cluster state to /path/to/cluster-state
 ```
-# Taint - Toleration
+**Taint - Toleration**
 ```ruby
 kubectl taint nodes node-name key=value:taint-effect
 kubectl taint nodes node-name app=blue:NoSchedule
@@ -376,7 +376,7 @@ tolerations:
 ```ruby
 kubectl taint node master node-role.kubernetes.io/master:NoSchedule-
 ```
-# Node Selector
+**Node Selector**
 ```ruby
 kubectl label nodes node-1 size=Large
 ```
@@ -385,7 +385,7 @@ nodeSelector:
  size: Large
 ```
 
-# Affinity
+**Affinity**
 ![image](https://user-images.githubusercontent.com/3519706/110210363-5a512080-7ea2-11eb-94b3-e1656901d31e.png)
 
 **Available**
@@ -419,17 +419,14 @@ affinity:
         - key: node-role.kubernetes.io/master
           operator: Exists
 ```
-
-
-
-# Static Pod
+**Static Pod**
 
 ```ruby
 kubectl run --restart=Never --image=busybox:1.28.4 \
             static-busybox --dry-run -o yaml \ 
             --command -- sleep 1000 > /etc/kubernetes/manifests/static-busybox.yaml
 ```
-# Upgrade
+**Upgrade**
 
 ```ruby
 kubectl drain node01 --ignore-daemonsets --force  > takes maintenance mode. deletes every pod on it
@@ -440,7 +437,7 @@ kubectl uncordon node01 > reactivates the node from maintenance mode. starts pod
 ```ruby
 kubectl cordon node01  > run existing ones but not new pod
 ```
-# ETCD
+**ETCD**
 ```ruby
 ETCDCTL_API=3 etcdctl endpoint status --cluster --write-out=table \
 --cacert /etc/kubernetes/pki/etcd/ca.crt \
@@ -459,7 +456,7 @@ ETCDCTL_API=3 etcdctl endpoint health --cluster \
 --cert /etc/kubernetes/pki/etcd/server.crt \
 --key /etc/kubernetes/pki/etcd/server.key
 ```
-# Backup
+**Backup**
 
 ```ruby
 ETCDCTL_API=3 etcdctl snapshot save \
@@ -486,9 +483,7 @@ kubectl exec -it etcd-controlplane -- sh -c "ETCDCTL_API=3 etcdctl \
 --cert /etc/kubernetes/pki/etcd/server.crt \
 get \"$KEY\" -w json" | jq '.kvs[0].value' | cut -d'"' -f2 | base64 --decode
 ```
-
-# Restore
-
+**Restore**
 ```ruby
 ETCDCTL_API=3 etcdctl snapshot restore \
 /tmp/snapshot-pre-boot.db \
@@ -501,9 +496,7 @@ ETCDCTL_API=3 etcdctl snapshot restore \
 --initial-cluster-token etcd-cluster-1 \
 --initial-advertise-peer-urls=https://127.0.0.1:2380
 ```
-
-# Certificate
-
+**Certificate**
 ```ruby
 kubectl get csr 
 
@@ -513,8 +506,7 @@ kubectl certificate deny <cert-name>
 
 kubectl delete csr <cert-name>
 ```
-# RBAC
-
+**RBAC**
 ```ruby
 kubectl get roles --all-namespaces
 
@@ -522,9 +514,7 @@ kubectl get roles weave-net -n kube-system -o yaml
 
 kubectl describe rolebindings weave-net -n kube-system
 ```
-
-# Security Context
-
+**Security Context**
 ```yaml
 spec:
   securityContext:
