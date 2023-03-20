@@ -1,11 +1,11 @@
 ### Install Kind
-```
+```sh
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
 chmod +x ./kind
 mv ./kind /usr/local/bin/kind
 ```
 ### Install Kubectl
-```
+```sh
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x kubectl
 mkdir -p ~/.local/bin
@@ -14,7 +14,7 @@ source <(kubectl completion bash)
 echo "source <(kubectl completion bash)" >> ~/.bashrc
 ```
 ### Config
-```
+```yaml
 cat <<EOF> config.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -60,18 +60,18 @@ nodes:
 EOF
 ```
 ### Login Cluster
-```
+```sh
 kind create cluster --config config.yaml
 kubectl config get-contexts
 kubectl config use-context kind-app-1-cluster
 ```
 ### Deploy Ingress
-```
+```sh
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 kubectl config set-context --current --namespace ingress-nginx
 ```
 ### Deploy App
-```
+```yaml
 kubectl create deployment web --image=quay.io/oktaysavdi/istioproject
 kubectl expose deploy web --target-port=8080 --port=80
 
