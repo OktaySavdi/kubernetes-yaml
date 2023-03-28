@@ -1,3 +1,4 @@
+```yaml
 kind: ServiceAccount
 apiVersion: v1
 metadata:
@@ -49,3 +50,4 @@ spec:
             # I'm using bitnami kubectl, because the suggested kubectl image didn't had the `field-selector` option
             command: ["sh", "-c", "for i in $(kubectl get ns --show-labels --no-headers | awk '{print $1\",\"$4}' | grep -vE \"default|vmware-system-*|kube-system|kube-public|kube-node-lease|backup=true\");do kubectl label namespaces $(echo $i | cut -d, -f1) backup=true;done"]
           restartPolicy: OnFailure
+```
