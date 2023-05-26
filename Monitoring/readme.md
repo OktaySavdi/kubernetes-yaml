@@ -42,7 +42,7 @@ serviceaccount/prometheus-operator created
 ```
 
 ```
-$ kubectl get ns monitoring
+kubectl get ns monitoring
 NAME         STATUS   AGE
 monitoring   Active   2m41s
 ```
@@ -50,7 +50,7 @@ monitoring   Active   2m41s
 Confirm that Prometheus operator pods are running:
 
 ```
-$ kubectl get pods -n monitoring
+kubectl get pods -n monitoring
 NAME                                   READY   STATUS    RESTARTS   AGE
 prometheus-operator-84dc795dc8-jbgjm   2/2     Running   0          91s
 ```
