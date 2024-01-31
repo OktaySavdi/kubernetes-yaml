@@ -439,6 +439,8 @@ kubectl cordon node01  > run existing ones but not new pod
 ```
 **ETCD**
 ```ruby
+alias etcdctl='etcdctl --cert /etc/kubernetes/pki/etcd/peer.crt --key /etc/kubernetes/pki/etcd/peer.key --cacert /etc/kubernetes/pki/etcd/ca.crt'
+
 ETCDCTL_API=3 etcdctl endpoint status --cluster --write-out=table \
 --cacert /etc/kubernetes/pki/etcd/ca.crt \
 --cert /etc/kubernetes/pki/etcd/server.crt \
