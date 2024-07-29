@@ -3,7 +3,7 @@ kubectl create -f - <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
-  name: trooubleshhoting
+  name: troubleshooting
   namespace: default
 spec:
   containers:
