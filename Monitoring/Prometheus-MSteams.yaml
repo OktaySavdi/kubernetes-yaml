@@ -1,0 +1,43 @@
+# config.yaml
+
+# https://github.com/prometheus-msteams/prometheus-msteams/blob/master/chart/prometheus-msteams/README.md
+#################################################################
+### Deploy to Kubernetes cluster
+### helm upgrade --install prometheus-msteams --namespace kube-monitor -f config.yaml prometheus-msteams/prometheus-msteams
+#################################################################
+---
+replicaCount: 1
+
+image:
+  repository: quay.io/prometheusmsteams/prometheus-msteams
+  tag: v1.5.1
+
+connectors:
+
+# in alertmanager, this will be used as http://prometheus-msteams:2000/bar
+
+- alertmanager: https://myteamswebhookxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# in alertmanager, this will be used as http://prometheus-msteams:2000/foo
+
+#- foo: https://outlook.office.com/webhook/xxxx/xxxx
+
+
+# extraEnvs is useful for adding extra environment variables such as proxy settings
+
+#extraEnvs:
+#  HTTP_PROXY: http://corporateproxy:8080
+#  HTTPS_PROXY: http://corporateproxy:8080
+#container:
+#  additionalArgs:
+#    - -debug
+
+
+# Enable metrics for prometheus operator
+
+metrics:
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: prometheus-msteams # change this accordingly
+    scrapeInterval: 30s
