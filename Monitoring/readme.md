@@ -10,7 +10,7 @@ helm install prometheus-msteams --namespace kube-monitor --create-namespace -f P
 helm install prometheus --namespace kube-monitor --create-namespace -f Prometheus.yaml prometheus-community/kube-prometheus-stack 
 ```
 ```
-PrometheusRule.yaml
+kubectl apply -f PrometheusRule.yaml
 ```
 ### # Update Prometheus AlertManager
 ```
