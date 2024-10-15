@@ -20,6 +20,8 @@ helm repo update
 helm upgrade prometheus-msteams -f Prometheus-MSteams.yaml prometheus-msteams/prometheus-msteams
 helm upgrade prometheus -f Prometheus.yaml prometheus-community/kube-prometheus-stack 
 ```
+### # Install Kwatch for Application Alerting
+
 To deploy kwatch, execute following command:
 ```
 kubectl apply -f kwatch.yaml
