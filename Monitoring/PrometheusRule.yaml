@@ -8,6 +8,16 @@ spec:
   groups:
     - name: rules
       rules:
+        - alert: OSHighDiskUsage
+          expr: |
+            (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} 
+            / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) * 100 < 20
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "OS disk space usage is high"
+            description: "The operating system disk usage has exceeded 80% on instance {{ $labels.instance }}."
         - alert: KubernetesMemoryPressure
           expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
           for: 2m
