@@ -48,7 +48,7 @@ kubectl auth can-i delete deployments --as=system:serviceaccount:default:build-r
 
 Get the token from the secret in base64, decode it and add to the  `TOKEN`  environment variable:
 ```
-export TOKEN=$(kubectl -n default get secret $TOKENNAME -o jsonpath='{.data.token}' | base64 --decode) 
+export TOKEN=$(kubectl -n default get secret build-robot-secret -o jsonpath='{.data.token}' | base64 --decode) 
 ```
 Check the token health level, make a request to the Kubernetes API with the token in the  `"Authorization: Bearer <TOKEN-HERE>"`  header:
 ```
