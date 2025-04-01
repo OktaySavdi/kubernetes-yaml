@@ -45,9 +45,7 @@ kubectl auth can-i delete deployments --as=system:serviceaccount:default:build-r
 ```
 
 ### Get the secret name of the created ServiceAccount that stores the token:
-```
-export TOKENNAME=$(kubectl -n default get serviceaccount/build-robot -o jsonpath='{.secrets[0].name}')
-``` 
+
 Get the token from the secret in base64, decode it and add to the  `TOKEN`  environment variable:
 ```
 export TOKEN=$(kubectl -n default get secret $TOKENNAME -o jsonpath='{.data.token}' | base64 --decode) 
