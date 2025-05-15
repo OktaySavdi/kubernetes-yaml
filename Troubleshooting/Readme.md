@@ -28,6 +28,15 @@ spec:
   containers:
   - name: dnsutils
     image: quay.io/oktaysavdi/dnsutils
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
     command:
       - sleep
       - "infinity"
