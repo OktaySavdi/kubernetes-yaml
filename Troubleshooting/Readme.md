@@ -30,7 +30,6 @@ spec:
     image: quay.io/oktaysavdi/dnsutils
     securityContext:
       allowPrivilegeEscalation: false
-      runAsNonRoot: true
       capabilities:
         drop:
         - ALL
