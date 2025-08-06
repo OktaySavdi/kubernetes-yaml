@@ -199,6 +199,7 @@ kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
 
 # List PersistentVolumes sorted by capacity
 kubectl get pv --sort-by=.spec.capacity.storage
+kubectl get pv -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.capacity.storage}{"\n"}{end}' | sed 's/Gi//' | sort -k2 -nr
 
 # add env to nginx-app
 kubectl set env deployment/nginx-app  DOMAIN=cluster
