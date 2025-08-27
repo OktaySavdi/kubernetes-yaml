@@ -31,15 +31,18 @@ kubectl create secret generic my-harbor-crt --from-file=tls.crt=server.crt --fro
 ```
 ### Add repo and install Harbor via heml chart
 ```
-helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add harbor https://helm.goharbor.io
 helm repo update
 ```
 ```
-helm fetch bitnami/harbor --untar
+helm install harbor harbor/harbor --namespace harbor -f values.yaml
 ```
 ```
-helm install myharbor bitnami/harbor -f values.yaml
-``` 
+helm status harbor -n harbor
+```
+```
+kubectl get pods -n harbor
+```
 ###  Get admin Passwort
 ```
 kubectl get secret -n <NAMESPACE> <SECRET NAME - harbor-core-envvars> -o jsonpath='{.data.HARBOR_ADMIN_PASSWORD}'| base64 --decode
