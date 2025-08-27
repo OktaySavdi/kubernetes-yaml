@@ -4,14 +4,14 @@
 
 ### Let's install cert manager:
 ```
-helm repo add jetstack https://charts.jetstack.io
-helm repo update
-helm upgrade cert-manager jetstack/cert-manager \
-    --install \
-    --create-namespace \
-    --wait \
-    --namespace cert-manager \
-    --set installCRDs=true
+helm repo add jetstack https://charts.jetstack.io --force-update
+
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.18.2 \
+  --set crds.enabled=true
 ```
 ### Verify things installed correctly:
 ```
