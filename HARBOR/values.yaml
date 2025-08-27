@@ -1,67 +1,93 @@
-global:
-  storageClass: "default"
-
-adminPassword: "pTUhp8Z0yLpYUbHee9Ha"
+# Instalaltion: https://vishynit.medium.com/setting-up-harbor-registry-on-kubernetes-using-helm-chart-5989d7c8df2a
+# Helm Repo   : https://github.com/goharbor/harbor-helm/blob/main/values.yaml
+expose: 
+  # Set how to expose the service. Set the type as "ingress", "clusterIP", "nodePort" or "loadBalancer"
+  # and fill the information in the corresponding section
+  type: ingress
+  tls:
+    # Enable TLS or not.
+    # Delete the "ssl-redirect" annotations in "expose.ingress.annotations" when TLS is disabled and "expose.type" is "ingress"
+    # Note: if the "expose.type" is "ingress" and TLS is disabled,
+    # the port must be included in the command when pulling/pushing images.
+    # Refer to https://github.com/goharbor/harbor/issues/5291 for details.
+    enabled: true
+    # The source of the tls certificate. Set as "auto", "secret"
+    # or "none" and fill the information in the corresponding section
+    # 1) auto: generate the tls certificate automatically
+    # 2) secret: read the tls certificate from the specified secret.
+    # The tls certificate can be generated manually or by cert manager
+    # 3) none: configure no tls certificate for the ingress. If the default
+    # tls certificate is configured in the ingress controller, choose this option
+    certSource: secret
+    auto:
+      # The common name used to generate the certificate, it's necessary
+      # when the type isn't "ingress"
+      commonName: ""
+    secret:
+      # The name of secret which contains keys named:
+      # "tls.crt" - the certificate
+      # "tls.key" - the private key
+      secretName: "harbor-cert"
+      notarySecretName: "harbor-cert"
+  ingress:
+    hosts:
+      core: myharbor.com
+      notary: myharbor.com
+    className: "nginx"
+    annotations:
+      # note different ingress controllers may require a different ssl-redirect annotation
+      # for Envoy, use ingress.kubernetes.io/force-ssl-redirect: "true" and remove the nginx lines below
+      ingress.kubernetes.io/ssl-redirect: "true"
+      ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.org/client-max-body-size: "0"
+      nginx.org/proxy-connect-timeout: 600s
+      nginx.org/proxy-read-timeout: 600s
+# The external URL for Harbor core service. It is used to
+# 1) populate the docker/helm commands showed on portal
+# 2) populate the token service URL returned to docker client
+#
+# Format: protocol://domain[:port]. Usually:
+# 1) if "expose.type" is "ingress", the "domain" should be
+# the value of "expose.ingress.hosts.core"
+# 2) if "expose.type" is "clusterIP", the "domain" should be
+# the value of "expose.clusterIP.name"
+# 3) if "expose.type" is "nodePort", the "domain" should be
+# the IP address of k8s node
+#
+# If Harbor is deployed behind the proxy, set it as the URL of proxy
 externalURL: https://myharbor.com
-logLevel: debug
 
-internalTLS:
-  enabled: false
-ipFamily:
-  ipv6:
-    enabled: false
-
-exposureType: proxy
-
-service:
-  type: LoadBalancer
-  ##loadBalancerIP: ""
+# The initial password of Harbor admin. Change it from portal after launching Harbor
+# or give an existing secret for it
+# key in secret is given via (default to HARBOR_ADMIN_PASSWORD)
+# existingSecretAdminPassword:
+existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
+harborAdminPassword: pTUhp8Z0yLpYUbHee9Ha"
 
 persistence:
   enabled: true
-  resourcePolicy: 'keep'
+  # Setting it to "keep" to avoid removing PVCs during a helm delete
+  # operation. Leaving it empty will delete PVCs after the chart deleted
+  # (this does not apply for PVCs that are created for internal database
+  # and redis components, i.e. they are never deleted automatically)
+  resourcePolicy: "keep"
   persistentVolumeClaim:
     registry:
-      accessModes:
-        - ReadWriteOnce
-      size: 5Gi #100Gi
-    jobservice:
-      accessModes:
-        - ReadWriteOnce
-      size: 1Gi
-    scanData:
-      accessModes:
-        - ReadWriteOnce
-      size: 1Gi
-    chartmuseum:
-      accessModes:
-        - ReadWriteOnce
-      size: 5Gi
-    trivy:
-      accessModes:
-        - ReadWriteOnce
-      size: 5Gi
-nginx:
-  tls:
-    enabled: true
-    existingSecret: "my-harbor-crt"
-    commonName: myharbor.com
-    
-jobservice:
-  updateStrategy:
-    type: Recreate
-  
-registry:
-  updateStrategy:
-    type: Recreate
-
-chartmuseum:
-  updateStrategy:
-    type: Recreate
-
-notary:
-  enabled: true
-  
+      # Use the existing PVC which must be created manually before bound,
+      # and specify the "subPath" if the PVC is shared with other components
+      existingClaim: ""
+      # Specify the "storageClass" used to provision the volume. Or the default
+      # StorageClass will be used (the default).
+      # Set it to "-" to disable dynamic provisioning
+      storageClass: "default"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 200Gi
+      annotations: {}
+      
+# PostgreSQL configuration
 postgresql:
   enabled: true
   auth:
