@@ -93,7 +93,11 @@ kubectl set env --from=secret/test-secret dc/map
 # Volume
 kubectl set volume rc/r1 --add --name=v1 --type=secret --secret-name='secret1' --mount-path=/data
 kubectl set volumes dc/myapp --add --name=secret-volume --mount-path=/opt/app-root/ --secret-name=oia-secret
+
+# List images
+kubectl get pods -A -o jsonpath="{..image}" | tr -s '[[:space:]]' '\n' | sort -u
 ```
+
 **Process**
 ```ruby
 kubectl process -f /yaml/myexample.yaml --parameters
