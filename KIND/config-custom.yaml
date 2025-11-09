@@ -1,0 +1,85 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: custom-cluster
+# Networking configuration (optional)
+networking:
+  # API server address (default: 127.0.0.1)
+  apiServerAddress: "127.0.0.1"
+  # API server port (default: random)
+  apiServerPort: 6443
+  # Pod subnet (default: 10.244.0.0/16)
+  podSubnet: "10.244.0.0/16"
+  # Service subnet (default: 10.96.0.0/12)
+  serviceSubnet: "10.96.0.0/12"
+  # Disable default CNI (if you want to use your own)
+  # disableDefaultCNI: false
+  # Kube-proxy mode: iptables or ipvs (default: iptables)
+  # kubeProxyMode: "iptables"
+
+# Feature gates (optional)
+# featureGates:
+#   SomeKubernetesFeature: true
+
+# Runtime config (optional)
+# runtimeConfig:
+#   "api/alpha": "false"
+
+# Global kubeadm config patches (optional)
+# kubeadmConfigPatches:
+# - |
+#   apiVersion: kubelet.config.k8s.io/v1beta1
+#   kind: KubeletConfiguration
+#   evictionHard:
+#     nodefs.available: "5%"
+
+nodes:
+# Control plane node
+- role: control-plane
+  # Kubernetes version (optional - default: latest)
+  # image: kindest/node:v1.29.2
+  # Extra mounts (optional)
+  # extraMounts:
+  # - hostPath: /path/on/host
+  #   containerPath: /path/in/container
+  #   readOnly: false
+  # Extra port mappings (optional)
+  # extraPortMappings:
+  # - containerPort: 30000
+  #   hostPort: 30000
+  #   protocol: TCP
+  # Labels (optional)
+  # labels:
+  #   tier: control-plane
+
+# Worker node
+- role: worker
+  # image: kindest/node:v1.29.2
+  # kubeadmConfigPatches:
+  # - |
+  #   kind: JoinConfiguration
+  #   nodeRegistration:
+  #     kubeletExtraArgs:
+  #       node-labels: "environment=production,app=backend"
+  # labels:
+  #   tier: worker
+  #   workload-type: general
+
+# Ingress-ready worker node
+- role: worker
+  # image: kindest/node:v1.29.2
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+  # labels:
+  #   tier: worker
+  #   workload-type: ingress
