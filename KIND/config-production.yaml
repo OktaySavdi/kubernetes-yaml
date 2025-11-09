@@ -1,0 +1,34 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: app-1-cluster
+nodes:
+# Control plane nodes (3 for HA)
+- role: control-plane
+  image: kindest/node:v1.29.2
+- role: control-plane
+  image: kindest/node:v1.29.2
+- role: control-plane
+  image: kindest/node:v1.29.2
+
+# Worker nodes (3 for production workloads)
+- role: worker
+  image: kindest/node:v1.29.2
+- role: worker
+  image: kindest/node:v1.29.2
+- role: worker
+  image: kindest/node:v1.29.2
+  # Configure this worker for ingress
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  # Map ports for HTTP/HTTPS traffic
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
