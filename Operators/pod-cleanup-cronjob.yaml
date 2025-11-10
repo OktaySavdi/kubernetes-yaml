@@ -233,7 +233,7 @@ metadata:
   name: pod-cleanup
   namespace: gt-operators
 spec:
-  # Run every night at 2:00 AM (adjust timezone as needed)
+  # Run every night at 3:00 AM (adjust timezone as needed)
   schedule: "0 3 * * *"
   # Keep last 5 successful and 3 failed jobs for history
   successfulJobsHistoryLimit: 5
