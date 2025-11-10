@@ -1,0 +1,508 @@
+---
+# ServiceAccount for node resource monitoring
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-resource-monitor-sa
+  namespace: gt-operators
+
+---
+# ClusterRole with permissions to read nodes and pods
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-resource-monitor-role
+rules:
+  # Permission to read nodes and their metrics
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list", "get"]
+  # Permission to read pods (to identify resource consumers)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "get"]
+  # Permission to read node metrics
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["nodes"]
+    verbs: ["list", "get"]
+
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-resource-monitor-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-resource-monitor-role
+subjects:
+  - kind: ServiceAccount
+    name: node-resource-monitor-sa
+    namespace: gt-operators
+
+---
+# ConfigMap for node resource monitor configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-resource-monitor-config
+  namespace: gt-operators
+data:
+  # Cluster Configuration
+  CLUSTER_NAME: "tkg-test-01"
+  
+  # Alert Thresholds
+  CPU_CRITICAL_THRESHOLD: "95"
+  CPU_WARNING_THRESHOLD: "90"
+  MEMORY_CRITICAL_THRESHOLD: "95"
+  MEMORY_WARNING_THRESHOLD: "90"
+  
+  # ServiceNow Configuration
+  SERVICENOW_ASSIGNMENT_GROUP: "Platform Engineering"
+  SERVICENOW_CATEGORY: "Kubernetes"
+  SERVICENOW_SUBCATEGORY: "Node Resources"
+  SERVICENOW_CALLER_ID: "node-monitor-operator"
+  SERVICENOW_CONTACT_TYPE: "Monitoring"
+  
+  # Feature Flags
+  ENABLE_SERVICENOW: "true"
+  ENABLE_TEAMS_ALERTS: "true"
+
+---
+# Secret for Teams webhook URL and ServiceNow credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: node-teams-webhook
+  namespace: gt-operators
+type: Opaque
+stringData:
+  # Teams webhook URL
+  TEAMS_WEBHOOK_URL: "https://your-teams-webhook-url-here"
+  
+  # ServiceNow credentials
+  SERVICENOW_INSTANCE: "your-instance.service-now.com"
+  SERVICENOW_USER: "api_user"
+  SERVICENOW_PASS: "api_password"
+
+---
+# ConfigMap containing the monitoring script
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-resource-monitor-script
+  namespace: gt-operators
+data:
+  monitor.sh: |
+    #!/bin/bash
+    # ============================================================
+    # Node Resource Monitor
+    # Purpose: Monitor node CPU/Memory and alert on resource pressure
+    # ============================================================
+    
+    set -e
+    
+    echo "=========================================="
+    echo "Node Resource Monitor Starting"
+    echo "Time: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "=========================================="
+    
+    # Configuration from ConfigMap/Secret
+    CLUSTER_NAME="${CLUSTER_NAME:-kubernetes-cluster}"
+    CPU_CRITICAL_THRESHOLD="${CPU_CRITICAL_THRESHOLD:-95}"
+    CPU_WARNING_THRESHOLD="${CPU_WARNING_THRESHOLD:-90}"
+    MEMORY_CRITICAL_THRESHOLD="${MEMORY_CRITICAL_THRESHOLD:-95}"
+    MEMORY_WARNING_THRESHOLD="${MEMORY_WARNING_THRESHOLD:-90}"
+    
+    echo "Cluster: $CLUSTER_NAME"
+    echo "CPU Thresholds: WARNING=${CPU_WARNING_THRESHOLD}% CRITICAL=${CPU_CRITICAL_THRESHOLD}%"
+    echo "Memory Thresholds: WARNING=${MEMORY_WARNING_THRESHOLD}% CRITICAL=${MEMORY_CRITICAL_THRESHOLD}%"
+    echo ""
+    
+    # Check Teams webhook
+    WEBHOOK_URL="${TEAMS_WEBHOOK_URL}"
+    if [ -z "$WEBHOOK_URL" ] || [ "$WEBHOOK_URL" == "https://your-teams-webhook-url-here" ]; then
+      echo "⚠️  WARNING: Teams webhook not configured. Skipping notifications."
+      SEND_TEAMS=false
+    else
+      SEND_TEAMS=true
+    fi
+    
+    # Temp files
+    NODE_REPORT="/tmp/node_report_$$.txt"
+    PRESSURE_REPORT="/tmp/pressure_report_$$.txt"
+    > "$NODE_REPORT"
+    > "$PRESSURE_REPORT"
+    
+    # ===== SERVICENOW INTEGRATION =====
+    servicenow_api() {
+      [ "$ENABLE_SERVICENOW" != "true" ] && return 1
+      [ -z "$SERVICENOW_INSTANCE" ] || [ "$SERVICENOW_INSTANCE" == "your-instance.service-now.com" ] && return 1
+      
+      local action="$1"
+      local desc=$(printf '%s' "$2" | sed 's/"/\\"/g' | tr '\n' ' ')
+      
+      if [ "$action" == "create" ]; then
+        local payload="{\"short_description\":\"CRITICAL: Node Resource Alert - ${CLUSTER_NAME}\",\"description\":\"${desc}\\n\\nCluster: ${CLUSTER_NAME}\\nTime: $(date)\",\"urgency\":\"1\",\"impact\":\"1\",\"priority\":\"1\",\"assignment_group\":\"$SERVICENOW_ASSIGNMENT_GROUP\",\"category\":\"$SERVICENOW_CATEGORY\",\"subcategory\":\"$SERVICENOW_SUBCATEGORY\",\"u_cluster_name\":\"$CLUSTER_NAME\",\"state\":\"1\"}"
+        local resp=$(curl -s -w "\n%{http_code}" -u "$SERVICENOW_USER:$SERVICENOW_PASS" -H "Content-Type: application/json" -d "$payload" "https://$SERVICENOW_INSTANCE/api/now/table/incident" 2>&1)
+        local code=$(echo "$resp" | tail -n1)
+        [ "$code" == "201" ] && echo "$resp" | head -n -1 | grep -o '"number":"[^"]*' | cut -d'"' -f4 && return 0
+        
+      elif [ "$action" == "check" ]; then
+        local ts=$(date -u -d "24 hours ago" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date -u -v-24H '+%Y-%m-%d %H:%M:%S')
+        local resp=$(curl -s -w "\n%{http_code}" -u "$SERVICENOW_USER:$SERVICENOW_PASS" "https://$SERVICENOW_INSTANCE/api/now/table/incident?sysparm_query=u_cluster_name=${CLUSTER_NAME}^stateIN1,2,3^sys_created_on>=${ts}&sysparm_limit=1" 2>&1)
+        local code=$(echo "$resp" | tail -n1)
+        [ "$code" == "200" ] && echo "$resp" | head -n -1 | grep -o '"number":"[^"]*' | head -1 | cut -d'"' -f4 && return 0
+        
+      elif [ "$action" == "update" ]; then
+        local sys_id="$3"
+        local payload="{\"work_notes\":\"${desc}\"}"
+        curl -s -u "$SERVICENOW_USER:$SERVICENOW_PASS" -H "Content-Type: application/json" -X PATCH -d "$payload" "https://$SERVICENOW_INSTANCE/api/now/table/incident/$sys_id" >/dev/null && return 0
+      fi
+      return 1
+    }
+    
+    # Function to send Teams notification
+    send_teams_alert() {
+      local title="$1"
+      local message="$2"
+      local color="$3"
+      
+      if [ "$ENABLE_TEAMS_ALERTS" != "true" ]; then
+        echo "  ℹ️  Teams alerts disabled via configuration"
+        return 0
+      fi
+      
+      if [ "$SEND_TEAMS" != "true" ]; then
+        echo "  ⚠️  Teams notification skipped (webhook not configured)"
+        return
+      fi
+      
+      local payload=$(cat <<EOF
+    {
+      "@type": "MessageCard",
+      "@context": "https://schema.org/extensions",
+      "summary": "$title",
+      "themeColor": "$color",
+      "title": "$title",
+      "sections": [{
+        "activityTitle": "Cluster: $CLUSTER_NAME",
+        "activitySubtitle": "$(date '+%Y-%m-%d %H:%M:%S UTC')",
+        "facts": [
+          {
+            "name": "Cluster:",
+            "value": "$CLUSTER_NAME"
+          }
+        ],
+        "text": "$message",
+        "markdown": true
+      }]
+    }
+    EOF
+    )
+      
+      echo "  📤 Sending Teams notification..."
+      RESPONSE=$(curl -s -w "\n%{http_code}" -H "Content-Type: application/json" -d "$payload" "$WEBHOOK_URL" 2>&1)
+      HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+      
+      if [ "$HTTP_CODE" == "200" ]; then
+        echo "  ✅ Teams notification sent successfully"
+      else
+        echo "  ❌ Teams notification failed (HTTP $HTTP_CODE)"
+      fi
+    }
+    
+    # Function to get top CPU consuming pods on a node
+    get_top_cpu_pods() {
+      local node="$1"
+      kubectl top pods -A --field-selector spec.nodeName="$node" 2>/dev/null | \
+        grep -v "NAME" | sort -k3 -h -r | head -3 | \
+        awk '{printf "  - %s/%s: %s\n", $1, $2, $3}' || echo "  - Unable to get pod metrics"
+    }
+    
+    # Function to get top memory consuming pods on a node
+    get_top_memory_pods() {
+      local node="$1"
+      kubectl top pods -A --field-selector spec.nodeName="$node" 2>/dev/null | \
+        grep -v "NAME" | sort -k4 -h -r | head -3 | \
+        awk '{printf "  - %s/%s: %s\n", $1, $2, $4}' || echo "  - Unable to get pod metrics"
+    }
+    
+    # Function to check node conditions for pressure
+    check_node_pressure() {
+      local node="$1"
+      local has_pressure=false
+      local pressure_types=""
+      
+      # Check for MemoryPressure
+      MEMORY_PRESSURE=$(kubectl get node "$node" -o jsonpath='{.status.conditions[?(@.type=="MemoryPressure")].status}' 2>/dev/null || echo "Unknown")
+      if [ "$MEMORY_PRESSURE" == "True" ]; then
+        has_pressure=true
+        pressure_types="${pressure_types}MemoryPressure "
+      fi
+      
+      # Check for DiskPressure
+      DISK_PRESSURE=$(kubectl get node "$node" -o jsonpath='{.status.conditions[?(@.type=="DiskPressure")].status}' 2>/dev/null || echo "Unknown")
+      if [ "$DISK_PRESSURE" == "True" ]; then
+        has_pressure=true
+        pressure_types="${pressure_types}DiskPressure "
+      fi
+      
+      # Check for PIDPressure
+      PID_PRESSURE=$(kubectl get node "$node" -o jsonpath='{.status.conditions[?(@.type=="PIDPressure")].status}' 2>/dev/null || echo "Unknown")
+      if [ "$PID_PRESSURE" == "True" ]; then
+        has_pressure=true
+        pressure_types="${pressure_types}PIDPressure "
+      fi
+      
+      if [ "$has_pressure" == "true" ]; then
+        echo "$node|$pressure_types" >> "$PRESSURE_REPORT"
+        echo "  ⚠️  Node under pressure: $pressure_types"
+      fi
+    }
+    
+    # Function to monitor a single node
+    monitor_node() {
+      local node="$1"
+      
+      echo "=== Checking Node: $node ==="
+      
+      # Get node status
+      NODE_STATUS=$(kubectl get node "$node" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "Unknown")
+      echo "  Status: $NODE_STATUS"
+      
+      # Check for node pressure conditions
+      check_node_pressure "$node"
+      
+      # Get node capacity
+      CPU_CAPACITY=$(kubectl get node "$node" -o jsonpath='{.status.capacity.cpu}' 2>/dev/null || echo "0")
+      MEMORY_CAPACITY=$(kubectl get node "$node" -o jsonpath='{.status.capacity.memory}' 2>/dev/null | sed 's/Ki$//' || echo "0")
+      
+      # Convert memory to Mi
+      MEMORY_CAPACITY_MI=$((MEMORY_CAPACITY / 1024))
+      
+      echo "  Capacity: ${CPU_CAPACITY} CPU, ${MEMORY_CAPACITY_MI}Mi Memory"
+      
+      # Get node metrics using kubectl top
+      METRICS_OUTPUT=$(kubectl top node "$node" 2>/dev/null || echo "")
+      
+      if [ -z "$METRICS_OUTPUT" ]; then
+        echo "  ⚠️  Unable to get metrics (metrics-server may not be installed)"
+        echo "  ℹ️  Checking allocatable resources instead..."
+        
+        # Get allocatable resources as fallback
+        CPU_ALLOCATABLE=$(kubectl get node "$node" -o jsonpath='{.status.allocatable.cpu}' 2>/dev/null || echo "0")
+        MEMORY_ALLOCATABLE=$(kubectl get node "$node" -o jsonpath='{.status.allocatable.memory}' 2>/dev/null | sed 's/Ki$//' || echo "0")
+        MEMORY_ALLOCATABLE_MI=$((MEMORY_ALLOCATABLE / 1024))
+        
+        echo "  Allocatable: ${CPU_ALLOCATABLE} CPU, ${MEMORY_ALLOCATABLE_MI}Mi Memory"
+        
+        # Get pod resource requests (as approximation of usage)
+        PODS_JSON=$(kubectl get pods -A --field-selector spec.nodeName="$node" -o json 2>/dev/null)
+        
+        CPU_REQUESTS=$(echo "$PODS_JSON" | jq '[.items[].spec.containers[].resources.requests.cpu // "0" | gsub("m";"") | tonumber] | add' 2>/dev/null || echo "0")
+        MEMORY_REQUESTS=$(echo "$PODS_JSON" | jq '[.items[].spec.containers[].resources.requests.memory // "0" | gsub("Mi";"") | gsub("Gi";"000") | tonumber] | add' 2>/dev/null || echo "0")
+        
+        echo "  Pod Requests: ${CPU_REQUESTS}m CPU, ${MEMORY_REQUESTS}Mi Memory"
+        echo ""
+        return
+      fi
+      
+      # Parse metrics output (CPU and Memory)
+      CPU_USAGE=$(echo "$METRICS_OUTPUT" | grep "$node" | awk '{print $2}' | sed 's/m$//' | sed 's/%$//')
+      MEMORY_USAGE=$(echo "$METRICS_OUTPUT" | grep "$node" | awk '{print $4}' | sed 's/Mi$//' | sed 's/Gi$/000/')
+      CPU_PERCENT=$(echo "$METRICS_OUTPUT" | grep "$node" | awk '{print $3}' | sed 's/%$//')
+      MEMORY_PERCENT=$(echo "$METRICS_OUTPUT" | grep "$node" | awk '{print $5}' | sed 's/%$//')
+      
+      # Handle empty values
+      CPU_USAGE=${CPU_USAGE:-0}
+      MEMORY_USAGE=${MEMORY_USAGE:-0}
+      CPU_PERCENT=${CPU_PERCENT:-0}
+      MEMORY_PERCENT=${MEMORY_PERCENT:-0}
+      
+      echo "  Current Usage: ${CPU_USAGE}m CPU (${CPU_PERCENT}%), ${MEMORY_USAGE}Mi Memory (${MEMORY_PERCENT}%)"
+      
+      # Log to report
+      echo "Node: $node" >> "$NODE_REPORT"
+      echo "  Status: $NODE_STATUS" >> "$NODE_REPORT"
+      echo "  CPU: ${CPU_USAGE}m (${CPU_PERCENT}%)" >> "$NODE_REPORT"
+      echo "  Memory: ${MEMORY_USAGE}Mi (${MEMORY_PERCENT}%)" >> "$NODE_REPORT"
+      echo "" >> "$NODE_REPORT"
+      
+      # Check CPU threshold
+      if [ "$CPU_PERCENT" -ge "$CPU_CRITICAL_THRESHOLD" ]; then
+        echo "  🔴 CRITICAL: CPU usage at ${CPU_PERCENT}%"
+        
+        # Get top CPU consumers
+        TOP_CPU_PODS=$(get_top_cpu_pods "$node")
+        
+        local alert_msg="🚨 **CRITICAL: Node CPU High**  \\n\\n**Node:** \`$node\`  \\n**CPU Usage:** ${CPU_USAGE}m / ${CPU_CAPACITY} (${CPU_PERCENT}%)  \\n**Status:** $NODE_STATUS  \\n\\n**Top CPU Consumers:**  \\n$TOP_CPU_PODS  \\n\\n⚠️ **Action Required:** Investigate high CPU usage immediately!"
+        
+        # Check for existing ServiceNow ticket
+        local ticket=$(servicenow_api "check")
+        
+        if [ -n "$ticket" ]; then
+          echo "  ℹ️  Updating existing ServiceNow ticket: $ticket"
+          local sys_id=$(curl -s -u "$SERVICENOW_USER:$SERVICENOW_PASS" "https://$SERVICENOW_INSTANCE/api/now/table/incident?sysparm_query=number=${ticket}&sysparm_limit=1" 2>/dev/null | grep -o '"sys_id":"[^"]*' | head -1 | cut -d'"' -f4)
+          servicenow_api "update" "CPU ALERT: Node $node CPU at ${CPU_PERCENT}% (${CPU_USAGE}m / ${CPU_CAPACITY}). Top consumers: $TOP_CPU_PODS" "$sys_id"
+          send_teams_alert "🔴 CRITICAL: Node CPU at ${CPU_PERCENT}%" "$alert_msg\\n\\n📋 Ticket: ${ticket} (updated)" "FF0000"
+        else
+          echo "  ℹ️  Creating new ServiceNow ticket"
+          ticket=$(servicenow_api "create" "Node $node CPU critical at ${CPU_PERCENT}% (${CPU_USAGE}m / ${CPU_CAPACITY}). Top consumers: $TOP_CPU_PODS")
+          [ -n "$ticket" ] && send_teams_alert "🔴 CRITICAL: Node CPU at ${CPU_PERCENT}%" "$alert_msg\\n\\n📋 Ticket: ${ticket}" "FF0000" || send_teams_alert "🔴 CRITICAL: Node CPU at ${CPU_PERCENT}%" "$alert_msg" "FF0000"
+        fi
+        
+      elif [ "$CPU_PERCENT" -ge "$CPU_WARNING_THRESHOLD" ]; then
+        echo "  🟠 WARNING: CPU usage at ${CPU_PERCENT}%"
+        
+        # Get top CPU consumers
+        TOP_CPU_PODS=$(get_top_cpu_pods "$node")
+        
+        local alert_msg="⚠️ **WARNING: Node CPU High**  \\n\\n**Node:** \`$node\`  \\n**CPU Usage:** ${CPU_USAGE}m / ${CPU_CAPACITY} (${CPU_PERCENT}%)  \\n**Status:** $NODE_STATUS  \\n\\n**Top CPU Consumers:**  \\n$TOP_CPU_PODS  \\n\\n⚠️ **Action Recommended:** Monitor CPU usage closely."
+        send_teams_alert "🟠 WARNING: Node CPU at ${CPU_PERCENT}%" "$alert_msg" "FFA500"
+      else
+        echo "  ✅ CPU usage OK (${CPU_PERCENT}%)"
+      fi
+      
+      # Check Memory threshold
+      if [ "$MEMORY_PERCENT" -ge "$MEMORY_CRITICAL_THRESHOLD" ]; then
+        echo "  🔴 CRITICAL: Memory usage at ${MEMORY_PERCENT}%"
+        
+        # Get top memory consumers
+        TOP_MEMORY_PODS=$(get_top_memory_pods "$node")
+        
+        local alert_msg="🚨 **CRITICAL: Node Memory High**  \\n\\n**Node:** \`$node\`  \\n**Memory Usage:** ${MEMORY_USAGE}Mi / ${MEMORY_CAPACITY_MI}Mi (${MEMORY_PERCENT}%)  \\n**Status:** $NODE_STATUS  \\n\\n**Top Memory Consumers:**  \\n$TOP_MEMORY_PODS  \\n\\n⚠️ **Action Required:** Investigate high memory usage immediately!"
+        
+        # Check for existing ServiceNow ticket
+        local ticket=$(servicenow_api "check")
+        
+        if [ -n "$ticket" ]; then
+          echo "  ℹ️  Updating existing ServiceNow ticket: $ticket"
+          local sys_id=$(curl -s -u "$SERVICENOW_USER:$SERVICENOW_PASS" "https://$SERVICENOW_INSTANCE/api/now/table/incident?sysparm_query=number=${ticket}&sysparm_limit=1" 2>/dev/null | grep -o '"sys_id":"[^"]*' | head -1 | cut -d'"' -f4)
+          servicenow_api "update" "MEMORY ALERT: Node $node Memory at ${MEMORY_PERCENT}% (${MEMORY_USAGE}Mi / ${MEMORY_CAPACITY_MI}Mi). Top consumers: $TOP_MEMORY_PODS" "$sys_id"
+          send_teams_alert "🔴 CRITICAL: Node Memory at ${MEMORY_PERCENT}%" "$alert_msg\\n\\n📋 Ticket: ${ticket} (updated)" "FF0000"
+        else
+          echo "  ℹ️  Creating new ServiceNow ticket"
+          ticket=$(servicenow_api "create" "Node $node Memory critical at ${MEMORY_PERCENT}% (${MEMORY_USAGE}Mi / ${MEMORY_CAPACITY_MI}Mi). Top consumers: $TOP_MEMORY_PODS")
+          [ -n "$ticket" ] && send_teams_alert "🔴 CRITICAL: Node Memory at ${MEMORY_PERCENT}%" "$alert_msg\\n\\n📋 Ticket: ${ticket}" "FF0000" || send_teams_alert "🔴 CRITICAL: Node Memory at ${MEMORY_PERCENT}%" "$alert_msg" "FF0000"
+        fi
+        
+      elif [ "$MEMORY_PERCENT" -ge "$MEMORY_WARNING_THRESHOLD" ]; then
+        echo "  🟠 WARNING: Memory usage at ${MEMORY_PERCENT}%"
+        
+        # Get top memory consumers
+        TOP_MEMORY_PODS=$(get_top_memory_pods "$node")
+        
+        local alert_msg="⚠️ **WARNING: Node Memory High**  \\n\\n**Node:** \`$node\`  \\n**Memory Usage:** ${MEMORY_USAGE}Mi / ${MEMORY_CAPACITY_MI}Mi (${MEMORY_PERCENT}%)  \\n**Status:** $NODE_STATUS  \\n\\n**Top Memory Consumers:**  \\n$TOP_MEMORY_PODS  \\n\\n⚠️ **Action Recommended:** Monitor memory usage closely."
+        send_teams_alert "🟠 WARNING: Node Memory at ${MEMORY_PERCENT}%" "$alert_msg" "FFA500"
+      else
+        echo "  ✅ Memory usage OK (${MEMORY_PERCENT}%)"
+      fi
+      
+      echo ""
+    }
+    
+    echo "=== Scanning Nodes ==="
+    echo ""
+    
+    # Get all nodes
+    NODES=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")
+    
+    if [ -z "$NODES" ]; then
+      echo "❌ No nodes found"
+      exit 1
+    fi
+    
+    # Monitor each node
+    for node in $NODES; do
+      monitor_node "$node"
+    done
+    
+    echo "=========================================="
+    echo "Node Resource Scan Complete"
+    echo "=========================================="
+    
+    # Display reports
+    if [ -s "$NODE_REPORT" ]; then
+      echo ""
+      echo "=== Node Resource Summary ==="
+      cat "$NODE_REPORT"
+    fi
+    
+    if [ -s "$PRESSURE_REPORT" ]; then
+      echo ""
+      echo "=== Nodes Under Pressure ==="
+      while IFS='|' read -r node pressure_types; do
+        echo "⚠️  Node: $node - Pressure: $pressure_types"
+        
+        # Send Teams alert for node pressure
+        local alert_msg="⚠️ **Node Under Pressure**  \\n\\n**Node:** \`$node\`  \\n**Pressure Types:** $pressure_types  \\n\\n⚠️ **Action Required:** Investigate node pressure conditions!"
+        send_teams_alert "⚠️ Node Pressure Detected" "$alert_msg" "FFA500"
+      done < "$PRESSURE_REPORT"
+    fi
+    
+    # Cleanup
+    rm -f "$NODE_REPORT" "$PRESSURE_REPORT"
+    
+    exit 0
+
+---
+# CronJob to run node resource monitoring
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: node-resource-monitor
+  namespace: gt-operators
+spec:
+  # Run every 5 minutes
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 1800  # Keep job for 30 minutes
+      template:
+        metadata:
+          labels:
+            app: node-resource-monitor
+        spec:
+          serviceAccountName: node-resource-monitor-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: monitor
+              image: bitnami/kubectl:latest
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/bash"]
+              args: ["/scripts/monitor.sh"]
+              
+              # Load all configuration and secrets
+              envFrom:
+                - secretRef:
+                    name: node-teams-webhook
+                - configMapRef:
+                    name: node-resource-monitor-config
+              
+              volumeMounts:
+                - name: monitor-script
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 1001
+                capabilities:
+                  drop:
+                    - ALL
+          volumes:
+            - name: monitor-script
+              configMap:
+                name: node-resource-monitor-script
+                defaultMode: 0755
