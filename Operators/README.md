@@ -92,4 +92,3 @@ Detailed documentation for each operator:
 - [Pod Cleanup](POD-CLEANUP-README.md) - Automated pod cleanup
 - [PVC Storage Monitor](PVC-STORAGE-MONITOR-README.md) - PVC disk usage monitoring
 - [Certificate Expiry Monitor](CERT-EXPIRY-MONITOR-README.md) - TLS certificate tracking
-- [Teams Webhook Setup](TEAMS-WEBHOOK-SETUP.md) - Webhook configuration guide
