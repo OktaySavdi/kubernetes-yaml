@@ -1,3 +1,4 @@
+```yaml
 ---
 # Deployment with Production Best Practices
 apiVersion: apps/v1
@@ -54,6 +55,9 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      volumes:
+      - name: tmp
+        emptyDir: {}
       containers:
       - name: istioproject
         image: quay.io/oktaysavdi/istioproject:latest
@@ -65,14 +69,17 @@ spec:
           capabilities:
             drop:
             - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
         # Resource limits and requests
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "32Mi"
+            cpu: "10m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "64Mi"
+            cpu: "50m"
         # Ports
         ports:
         - name: http
@@ -81,7 +88,7 @@ spec:
         # Liveness probe - restart if unhealthy
         livenessProbe:
           httpGet:
-            path: /healthz
+            path: /istio
             port: http
             scheme: HTTP
           initialDelaySeconds: 30
@@ -92,7 +99,7 @@ spec:
         # Readiness probe - remove from service if not ready
         readinessProbe:
           httpGet:
-            path: /ready
+            path: /istio
             port: http
             scheme: HTTP
           initialDelaySeconds: 10
@@ -207,11 +214,12 @@ spec:
       cpu: "2"        # No container can request more than 2 CPU
       memory: "2Gi"   # No container can request more than 2GB RAM
     min:
-      cpu: "100m"     # Every container must request at least 100m CPU
-      memory: "128Mi" # Every container must request at least 128Mi RAM
+      cpu: "10m"      # Every container must request at least 10m CPU
+      memory: "32Mi"  # Every container must request at least 32Mi RAM
     default:
-      cpu: "500m"     # Auto-assigned if no limits.cpu specified
+      cpu: "200m"     # Auto-assigned if no limits.cpu specified
       memory: "512Mi" # Auto-assigned if no limits.memory specified
     defaultRequest:
-      cpu: "250m"     # Auto-assigned if no requests.cpu specified
+      cpu: "100m"     # Auto-assigned if no requests.cpu specified
       memory: "256Mi" # Auto-assigned if no requests.memory specified
+```
