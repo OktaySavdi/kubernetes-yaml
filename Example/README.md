@@ -75,10 +75,10 @@ spec:
         # Resource limits and requests
         resources:
           requests:
-            memory: "32Mi"
+            memory: "128Mi"
             cpu: "10m"
           limits:
-            memory: "64Mi"
+            memory: "256Mi"
             cpu: "50m"
         # Ports
         ports:
