@@ -89,7 +89,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /istio
-            port: http
+            port: 8080
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -100,7 +100,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /istio
-            port: http
+            port: 8080
             scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 5
